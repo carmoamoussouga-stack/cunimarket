@@ -418,6 +418,140 @@ button {
   justify-content: center;
   font-size: 2.6rem;
   position: relative;
+  overflow: hidden;
+}
+
+.listing-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.producer-card {
+  display: block;
+  width: 100%;
+  padding: 0.85rem;
+  margin-bottom: 0.7rem;
+  text-align: left;
+}
+
+.loc-banner {
+  margin: 0.7rem 1rem 0;
+  padding: 0.75rem 0.85rem;
+  background: var(--wh);
+  border: 1.5px solid var(--bd);
+  border-radius: var(--r2);
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.geo-map {
+  position: relative;
+  height: 210px;
+  border-radius: var(--r2);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(82, 183, 136, 0.35), transparent 45%),
+    radial-gradient(circle at 70% 70%, rgba(196, 122, 43, 0.18), transparent 40%),
+    repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(27, 67, 50, 0.06) 19px),
+    repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(27, 67, 50, 0.06) 19px),
+    linear-gradient(160deg, #d7eadb, #c5d4c0 55%, #e8dcc8);
+  border: 1.5px solid var(--bd);
+}
+
+.geo-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  border: none;
+  background: none;
+  font-size: 1.25rem;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+  z-index: 2;
+}
+
+.geo-pin.you {
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.geo-pin.you span {
+  display: block;
+  background: var(--oc);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  font-family: var(--fd);
+  padding: 0.2rem 0.4rem;
+  border-radius: 100px;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
+}
+
+.photo-slot,
+.photo-add {
+  aspect-ratio: 1;
+  border-radius: var(--r1);
+  overflow: hidden;
+  position: relative;
+  background: var(--cr);
+  border: 1.5px dashed var(--bd);
+}
+
+.photo-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.photo-add {
+  display: grid;
+  place-items: center;
+  font-family: var(--fd);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gd);
+}
+
+.photo-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.photo-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.photo-dots button.on {
+  background: #fff;
 }
 
 .fav-btn {
@@ -794,4 +928,116 @@ button {
   display: flex;
   gap: 0.6rem;
   align-items: center;
+}
+
+/* ══ Responsive (tablette / desktop) ═══════════════════ */
+
+/* ── Tablette : grilles élargies, panneaux en modale ─── */
+@media (min-width: 640px) {
+  .listing-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .section {
+    padding: 1.5rem 1.5rem;
+  }
+
+  .loc-banner {
+    margin: 0.9rem 1.5rem 0;
+  }
+
+  .topbar {
+    padding: 0 1.5rem;
+  }
+
+  /* les panneaux deviennent des modales centrées */
+  .sheet-backdrop {
+    align-items: center;
+  }
+
+  .sheet {
+    max-width: 520px;
+    border-radius: var(--r3);
+    max-height: 82dvh;
+  }
+}
+
+/* ── Desktop : sidebar + coque large ─────────────────── */
+@media (min-width: 1024px) {
+  body {
+    background: #e4dbcd;
+  }
+
+  .app-shell {
+    max-width: 1120px;
+    /* colonne « nav » + colonne « contenu » */
+    display: grid;
+    grid-template-columns: 108px 1fr;
+    grid-template-areas: 'nav main';
+    align-items: start;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.1);
+  }
+
+  .app-main {
+    grid-area: main;
+    padding-bottom: 0;
+  }
+
+  /* la barre de navigation devient une sidebar verticale */
+  .bottom-nav {
+    grid-area: nav;
+    position: sticky;
+    top: 0;
+    left: auto;
+    transform: none;
+    width: auto;
+    max-width: none;
+    height: 100dvh;
+    align-self: start;
+    grid-template-columns: 1fr;
+    grid-auto-rows: max-content;
+    align-content: start;
+    gap: 0.2rem;
+    padding-top: 0.9rem;
+    border-top: none;
+    border-right: 1px solid var(--bd);
+  }
+
+  .nav-item {
+    height: 68px;
+    font-size: 0.72rem;
+    gap: 5px;
+  }
+
+  .nav-item .nav-icon {
+    font-size: 1.35rem;
+  }
+
+  /* l’indicateur actif passe d’une barre haute à une barre latérale */
+  .nav-item.active::before {
+    top: 20px;
+    left: 0;
+    width: 3px;
+    height: 28px;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .listing-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* barre d’actions : épinglée en bas du contenu (plus centrée sur l’écran) */
+  .sticky-cta {
+    position: sticky;
+    bottom: 0;
+    left: auto;
+    transform: none;
+    width: 100%;
+    max-width: none;
+  }
+
+  /* le toast reste centré sur la colonne de contenu */
+  .toast {
+    left: calc(50% + 54px);
+  }
 }

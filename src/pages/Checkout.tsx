@@ -1,9 +1,17 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
-import { DELIVERY_OPTIONS, PAY_OPTIONS } from '../data/mock';
+import { DELIVERY_OPTIONS } from '../data/mock';
 import { fcfa, useApp } from '../store/context';
-import type { DeliveryMode, PayMethod } from '../types';
+import type { DeliveryMode } from '../types';
+
+function createOrderReference() {
+  return `#CMK-${Date.now().toString(36).slice(-6).toUpperCase()}`;
+}
+
+function formatOrderDate() {
+  return new Date().toLocaleDateString('fr-FR');
+}
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -11,17 +19,16 @@ export default function Checkout() {
   const { cart, cartTotal, user, addOrder, showToast } = useApp();
 
   const [delivery, setDelivery] = useState<DeliveryMode>('moto');
-  const [payMethod, setPayMethod] = useState<PayMethod>('mtn');
   const [form, setForm] = useState({
     name: user?.name ?? '',
     phone: user?.phone ?? '',
     email: user?.email ?? '',
-    city: '',
+    city: user?.city ?? '',
   });
-  const [fedaOpen, setFedaOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  const discount = Number(params.get('discount') ?? 0);
+  const couponCode = params.get('coupon')?.toUpperCase() === 'CUNIMARKET10' ? 'CUNIMARKET10' : '';
+  const discount = couponCode ? Math.round(cartTotal * 0.1) : 0;
   const deliveryFee = DELIVERY_OPTIONS.find((d) => d.value === delivery)?.fee ?? 0;
   const total = cartTotal + deliveryFee - discount;
 
@@ -40,35 +47,34 @@ export default function Checkout() {
     );
   }
 
-  const openPayment = () => {
-    if (!form.name || !form.phone) {
-      showToast('Nom et téléphone obligatoires', 'error');
+  const placeOrder = async () => {
+    if (!form.name.trim() || form.phone.trim().length < 6 || !form.city.trim()) {
+      showToast('Nom, téléphone valide et ville de livraison obligatoires', 'error');
       return;
     }
-    setFedaOpen(true);
-  };
-
-  const pay = () => {
     setProcessing(true);
-    window.setTimeout(() => {
-      const ref = `#CMK-${Date.now().toString().slice(-5)}`;
-      addOrder({
-        ref,
-        createdAt: new Date().toLocaleDateString('fr-FR'),
-        items: cart.map((i) => ({ id: i.id, title: i.title, qty: i.cartQty, price: i.price, emoji: i.emoji, bg: i.bg })),
+    try {
+      const order = await addOrder({
+        ref: createOrderReference(),
+        createdAt: formatOrderDate(),
+        items: cart.map((i) => ({ id: i.id, title: i.title, qty: i.cartQty, price: i.price, emoji: i.emoji, bg: i.bg, sellerId: i.sellerId })),
         subtotal: cartTotal,
         deliveryFee,
         discount,
         total,
         delivery,
-        payMethod,
-        status: 'confirmed',
+        payMethod: 'cash_on_delivery',
+        status: 'pending',
         buyer: form,
+        paymentStatus: 'due_on_delivery',
+        paymentMethod: 'cash_on_delivery',
       });
+      navigate(`/confirmation/${order.ref.replace('#', '')}`, { replace: true });
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Impossible d’enregistrer la commande.', 'error');
+    } finally {
       setProcessing(false);
-      setFedaOpen(false);
-      navigate(`/confirmation/${ref.replace('#', '')}`, { replace: true });
-    }, 2200);
+    }
   };
 
   return (
@@ -77,7 +83,7 @@ export default function Checkout() {
 
       <div className="section" style={{ paddingBottom: '.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '.35rem', justifyContent: 'center', marginBottom: '1rem' }}>
-          {['Panier', 'Livraison', 'Paiement'].map((s, i) => (
+          {['Panier', 'Livraison', 'Confirmation'].map((s, i) => (
             <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '.35rem' }}>
               <span
                 style={{
@@ -146,38 +152,14 @@ export default function Checkout() {
         </div>
 
         <div className="card" style={{ padding: '1rem', marginBottom: '.9rem' }}>
-          <div className="label" style={{ marginBottom: '.8rem' }}>
-            💳 Paiement — <span style={{ color: 'var(--oc)' }}>sécurisé par FedaPay</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
-            {PAY_OPTIONS.map((p) => (
-              <button
-                key={p.value}
-                className={`option-row${payMethod === p.value ? ' selected' : ''}`}
-                onClick={() => setPayMethod(p.value)}
-              >
-                <span
-                  style={{
-                    width: 48,
-                    height: 32,
-                    borderRadius: 6,
-                    background: p.bg,
-                    color: p.color,
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontSize: '.65rem',
-                    fontWeight: 800,
-                    flexShrink: 0,
-                  }}
-                >
-                  {p.logo}
-                </span>
-                <span style={{ flex: 1 }}>
-                  <span className="option-title" style={{ display: 'block' }}>{p.title}</span>
-                  <span className="option-desc">{p.desc}</span>
-                </span>
-              </button>
-            ))}
+          <div className="label" style={{ marginBottom: '.45rem' }}>💵 Paiement à la livraison</div>
+          <p className="muted" style={{ fontSize: '.84rem', lineHeight: 1.55 }}>
+            Vous ne payez rien maintenant. Le montant total sera à régler au producteur ou au livreur
+            lorsque vous recevrez votre commande.
+          </p>
+          <div className="row-between" style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)', marginTop: '.75rem' }}>
+            <span>À régler à la livraison</span>
+            <span style={{ color: 'var(--oc)' }}>{fcfa(total)}</span>
           </div>
         </div>
 
@@ -213,60 +195,16 @@ export default function Checkout() {
       </div>
 
       <div className="sticky-cta">
-        <button className="btn ocre block" onClick={openPayment}>
-          💳 Payer {fcfa(total)}
+        <button className="btn ocre block" onClick={() => void placeOrder()} disabled={processing}>
+          {processing ? 'Enregistrement…' : `✅ Confirmer la commande · ${fcfa(total)}`}
         </button>
       </div>
 
-      {fedaOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !processing) setFedaOpen(false);
-          }}
-        >
-          <div style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 380, overflow: 'hidden', position: 'relative' }}>
-            <div style={{ background: 'linear-gradient(135deg,#1B4332,#2D6A4F)', padding: '1.25rem', textAlign: 'center', color: '#fff' }}>
-              <div style={{ fontFamily: 'var(--fd)', fontWeight: 800 }}>🔒 FedaPay</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '.4rem 0 .2rem' }}>{fcfa(total)}</div>
-              <div style={{ fontSize: '.76rem', opacity: 0.75 }}>CuniMarket · Votre commande</div>
-            </div>
-            <div style={{ padding: '1.1rem', position: 'relative' }}>
-              <div className="field">
-                <label className="label" htmlFor="p-phone">Numéro de téléphone</label>
-                <input id="p-phone" className="input" defaultValue={form.phone || '+229 97 00 00 00'} />
-              </div>
-              <div className="field">
-                <label className="label" htmlFor="p-name">Nom du titulaire</label>
-                <input id="p-name" className="input" defaultValue={form.name} />
-              </div>
-              <button className="btn ocre block lg" onClick={pay}>
-                Payer {fcfa(total)}
-              </button>
-              <div style={{ textAlign: 'center', fontSize: '.7rem', color: '#999', marginTop: '.8rem' }}>
-                🔒 Paiement simulé · aucune transaction réelle
-              </div>
-              {processing && (
-                <div style={{ position: 'absolute', inset: 0, background: '#fff', display: 'grid', placeItems: 'center', gap: '.75rem' }}>
-                  <div>
-                    <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
-                    <div
-                      style={{
-                        width: 44,
-                        height: 44,
-                        border: '4px solid #eee',
-                        borderTopColor: '#1B4332',
-                        borderRadius: '50%',
-                        animation: 'spin .8s linear infinite',
-                        margin: '0 auto .75rem',
-                      }}
-                    />
-                    <div style={{ fontFamily: 'var(--fd)', fontWeight: 700, color: '#1B4332', textAlign: 'center' }}>Traitement en cours…</div>
-                    <div style={{ fontSize: '.78rem', color: '#718096', textAlign: 'center' }}>Ne fermez pas cette fenêtre</div>
-                  </div>
-                </div>
-              )}
-            </div>
+      {processing && (
+        <div className="modal-backdrop" role="status" aria-live="polite">
+          <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '2rem' }}>📦</div>
+            <div style={{ fontFamily: 'var(--fd)', fontWeight: 700, color: 'var(--gd)' }}>Enregistrement de votre commande…</div>
           </div>
         </div>
       )}

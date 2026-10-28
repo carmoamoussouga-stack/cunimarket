@@ -1,65 +1,65 @@
 import TopBar from '../../components/TopBar';
-import { REVENUE_MONTHS, SELLER_ORDERS } from '../../data/mock';
-import { fcfa } from '../../store/context';
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: '⏳ En attente',
-  confirmed: '✓ Confirmé',
-  shipping: '🚚 En route',
-  delivered: '✅ Livré',
-};
+import { DELIVERY_OPTIONS } from '../../data/mock';
+import { fcfa, useApp } from '../../store/context';
 
 export default function Stats() {
-  const max = Math.max(...REVENUE_MONTHS.map(([, v]) => v));
+  const { orders, ownListings } = useApp();
+  const sales = orders.filter((order) =>
+    order.status !== 'cancelled' && order.items.some((item) => item.sellerId === 'me'),
+  );
+  const paid = sales.filter((order) => order.paymentStatus === 'paid');
+  const due = sales.filter((order) => order.paymentStatus !== 'paid');
+  const received = paid.reduce((total, order) => total + order.total, 0);
+  const awaiting = due.reduce((total, order) => total + order.total, 0);
+  const views = ownListings.reduce((total, listing) => total + listing.views, 0);
 
   return (
     <div className="page">
       <TopBar title="Tableau de bord" back showCart={false} />
       <div className="section">
+        <p className="muted" style={{ fontSize: '.82rem', marginBottom: '.8rem' }}>
+          Chiffres calculés à partir des commandes enregistrées sur cet appareil.
+        </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.6rem' }}>
           {[
-            ['💰', '487 500', 'Revenus ce mois (FCFA)', '↑ +23%'],
-            ['📦', '128', 'Ventes totales', '↑ +8 ce mois'],
-            ['👀', '3 241', 'Vues annonces', '↑ +15%'],
-            ['⭐', '4.9', 'Note moyenne', '89 avis'],
-          ].map(([ic, n, l, d]) => (
-            <div key={l} className="stat-card">
-              <div style={{ fontSize: '1.2rem' }}>{ic}</div>
-              <div className="stat-value">{n}</div>
-              <div className="stat-label">{l}</div>
-              <div style={{ fontSize: '.7rem', fontWeight: 700, color: 'var(--su)', marginTop: '.25rem' }}>{d}</div>
+            ['💰', fcfa(received), 'Reçu après livraison'],
+            ['📦', String(sales.length), 'Commandes reçues'],
+            ['🕒', fcfa(awaiting), 'À encaisser à la livraison'],
+            ['👀', String(views), 'Vues de mes annonces'],
+          ].map(([icon, value, label]) => (
+            <div key={label} className="stat-card">
+              <div style={{ fontSize: '1.2rem' }}>{icon}</div>
+              <div className="stat-value">{value}</div>
+              <div className="stat-label">{label}</div>
             </div>
           ))}
-        </div>
-
-        <div className="card" style={{ padding: '1rem', marginTop: '.9rem' }}>
-          <div className="section-title" style={{ fontSize: '.9rem' }}>📈 Revenus mensuels</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '.4rem', height: 150 }}>
-            {REVENUE_MONTHS.map(([m, v]) => (
-              <div key={m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '.25rem' }}>
-                <div style={{ fontSize: '.62rem', fontFamily: 'var(--fd)', fontWeight: 700, color: 'var(--gd)' }}>{Math.round(v / 1000)}k</div>
-                <div style={{ width: '100%', height: Math.round((v / max) * 110), background: 'var(--gd)', opacity: 0.85, borderRadius: '4px 4px 0 0' }} />
-                <div style={{ fontSize: '.62rem', color: 'var(--sll)' }}>{m}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="card" style={{ marginTop: '.9rem' }}>
           <div className="list-row" style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)', fontSize: '.9rem' }}>
             Commandes récentes
           </div>
-          {SELLER_ORDERS.map((o) => (
-            <div key={o.ref} className="list-row">
-              <div className="thumb-sm" style={{ background: o.items[0].bg }}>{o.items[0].emoji}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--fd)', fontWeight: 700, fontSize: '.83rem', color: 'var(--gd)' }}>{o.ref}</div>
-                <div className="muted" style={{ fontSize: '.75rem' }}>{o.buyer.name} · {o.items[0].title}</div>
-                <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, fontSize: '.8rem', color: 'var(--oc)' }}>{fcfa(o.total)}</div>
+          {sales.length === 0 ? (
+            <p className="muted" style={{ padding: '0 1rem 1rem', fontSize: '.82rem' }}>
+              Aucune commande reçue sur cet appareil pour le moment.
+            </p>
+          ) : (
+            sales.slice(0, 5).map((order) => (
+              <div key={order.ref} className="list-row">
+                <div className="thumb-sm" style={{ background: order.items[0]?.bg ?? 'var(--cr)' }}>
+                  {order.items[0]?.emoji ?? '📦'}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--fd)', fontWeight: 700, fontSize: '.83rem', color: 'var(--gd)' }}>{order.ref}</div>
+                  <div className="muted" style={{ fontSize: '.75rem' }}>
+                    {order.buyer.name} · {DELIVERY_OPTIONS.find((option) => option.value === order.delivery)?.title}
+                  </div>
+                  <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, fontSize: '.8rem', color: 'var(--oc)' }}>{fcfa(order.total)}</div>
+                </div>
+                <span className="status">{order.paymentStatus === 'paid' ? 'Payé' : 'À la livraison'}</span>
               </div>
-              <span className="status">{STATUS_LABEL[o.status]}</span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

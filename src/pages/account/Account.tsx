@@ -5,11 +5,12 @@ import { useApp } from '../../store/context';
 const SELLER_LINKS = [
   ['/compte/stats', '📊', 'Tableau de bord', 'Revenus, ventes, vues'],
   ['/compte/annonces', '📋', 'Mes annonces', 'Gérer et supprimer'],
-  ['/compte/publier', '➕', 'Publier une annonce', 'Vendre un lot'],
-  ['/compte/finances', '💰', 'Finances', 'Paiements FedaPay'],
+  ['/compte/publier', '➕', 'Publier une annonce', 'Photos et caractéristiques'],
+  ['/compte/finances', '💰', 'Finances', 'Paiements à la livraison'],
 ] as const;
 
 const COMMON_LINKS = [
+  ['/alentours', '📍', 'Producteurs proches', 'Carte de votre zone'],
   ['/compte/commandes', '📦', 'Mes commandes', 'Suivi et historique'],
   ['/compte/messages', '💬', 'Messages', 'Discuter avec les éleveurs'],
   ['/favoris', '❤️', 'Mes favoris', 'Annonces sauvegardées'],
@@ -27,11 +28,12 @@ export default function Account() {
           <div className="ico">👤</div>
           <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)' }}>Pas encore connecté</div>
           <p className="muted" style={{ fontSize: '.87rem', margin: '.4rem 0 1.2rem' }}>
-            Connectez-vous pour commander, discuter et publier des annonces.
+            Compte producteur pour vendre vos lapins, ou compte acheteur pour trouver les élevages de votre zone.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
             <button className="btn block" onClick={() => navigate('/connexion')}>Se connecter</button>
-            <button className="btn ghost block" onClick={() => navigate('/inscription')}>Créer un compte</button>
+            <button className="btn ocre block" onClick={() => navigate('/inscription?role=seller')}>Compte producteur</button>
+            <button className="btn ghost block" onClick={() => navigate('/inscription?role=buyer')}>Compte acheteur</button>
           </div>
         </div>
       </div>
@@ -50,7 +52,8 @@ export default function Account() {
             <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)' }}>{user.name}</div>
             <div className="muted" style={{ fontSize: '.78rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
             <span className="chip" style={{ marginTop: '.3rem', display: 'inline-block' }}>
-              {user.role === 'seller' ? '🏪 Vendeur' : '🛒 Acheteur'}
+              {user.role === 'seller' ? '🐇 Producteur' : '🛒 Acheteur'}
+              {user.lat != null ? ' · 📍 Localisé' : ''}
             </span>
           </div>
         </div>

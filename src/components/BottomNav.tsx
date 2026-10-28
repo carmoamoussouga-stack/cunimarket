@@ -3,19 +3,19 @@ import { useApp } from '../store/context';
 
 const ITEMS = [
   { to: '/', icon: '🏠', label: 'Accueil', end: true },
-  { to: '/catalogue', icon: '🔍', label: 'Catalogue', end: false },
-  { to: '/favoris', icon: '❤️', label: 'Favoris', end: false },
+  { to: '/alentours', icon: '📍', label: 'Près', end: false },
+  { to: '/catalogue', icon: '🔍', label: 'Lots', end: false },
   { to: '/panier', icon: '🛒', label: 'Panier', end: false },
   { to: '/compte', icon: '👤', label: 'Compte', end: false },
 ];
 
 export default function BottomNav() {
-  const { cartCount, favorites } = useApp();
+  const { cartCount } = useApp();
 
   return (
     <nav className="bottom-nav">
       {ITEMS.map((item) => {
-        const count = item.to === '/panier' ? cartCount : item.to === '/favoris' ? favorites.length : 0;
+        const count = item.to === '/panier' ? cartCount : 0;
         return (
           <NavLink
             key={item.to}

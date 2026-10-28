@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ListingCard from '../components/ListingCard';
+import LocationPrompt from '../components/LocationPrompt';
 import { CATEGORIES, TRENDING } from '../data/mock';
 import { useApp } from '../store/context';
 
@@ -10,11 +11,15 @@ export default function Home() {
   const { listings, user } = useApp();
   const [search, setSearch] = useState('');
 
-  const goSearch = (q: string) => navigate(`/catalogue?q=${encodeURIComponent(q)}`);
+  const goSearch = (q: string) => {
+    if (q === 'Près de moi') navigate('/alentours');
+    else navigate(`/catalogue?q=${encodeURIComponent(q)}`);
+  };
 
   return (
     <div className="page">
       <TopBar />
+      <LocationPrompt />
 
       <section
         style={{
@@ -38,7 +43,7 @@ export default function Home() {
             textTransform: 'uppercase',
           }}
         >
-          🌍 Bénin & Afrique de l'Ouest
+          🐇 Uniquement les éleveurs de lapins
         </span>
         <h1
           style={{
@@ -49,10 +54,11 @@ export default function Home() {
             margin: '.75rem 0 .5rem',
           }}
         >
-          La marketplace du <span style={{ color: 'var(--ol)' }}>cuniculteur</span>
+          Vendez vos lapins <span style={{ color: 'var(--ol)' }}>près de chez vous</span>
         </h1>
         <p style={{ fontSize: '.9rem', color: 'rgba(249,245,239,.78)', lineHeight: 1.6 }}>
-          Lapereaux, reproducteurs, cailles, équipements et aliments — directement entre éleveurs.
+          Pour les producteurs qui n’arrivent pas à écouler leur cheptel. Les acheteurs activent
+          leur localisation et trouvent les fermes de leur zone, avec photos et caractéristiques.
         </p>
 
         <div style={{ display: 'flex', gap: '.5rem', marginTop: '1rem' }}>
@@ -61,7 +67,7 @@ export default function Home() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && goSearch(search)}
-            placeholder="Rechercher une annonce…"
+            placeholder="Rechercher un lot, une race…"
             style={{ border: 'none' }}
           />
           <button className="btn ocre" onClick={() => goSearch(search)} aria-label="Rechercher">
@@ -79,12 +85,12 @@ export default function Home() {
 
         <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1.25rem' }}>
           {[
-            ['1 200+', 'Éleveurs'],
-            ['3 400+', 'Annonces'],
-            ['12', 'Départements'],
+            ['Producteurs', 'Fournisseurs'],
+            ['Acheteurs', 'Près de vous'],
+            ['Photos', 'Lots réels'],
           ].map(([n, l]) => (
             <div key={l}>
-              <div style={{ fontFamily: 'var(--fd)', fontSize: '1.15rem', fontWeight: 800 }}>{n}</div>
+              <div style={{ fontFamily: 'var(--fd)', fontSize: '1.05rem', fontWeight: 800 }}>{n}</div>
               <div style={{ fontSize: '.7rem', color: 'rgba(249,245,239,.65)' }}>{l}</div>
             </div>
           ))}
@@ -92,6 +98,17 @@ export default function Home() {
       </section>
 
       <section className="section">
+        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '.8rem', alignItems: 'center' }}>
+          <div style={{ fontSize: '1.6rem' }}>📍</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)' }}>Producteurs dans votre zone</div>
+            <p className="muted" style={{ fontSize: '.8rem' }}>Localisez les élevages proches et leurs spécialités.</p>
+          </div>
+          <button className="btn ocre" onClick={() => navigate('/alentours')}>Voir</button>
+        </div>
+      </section>
+
+      <section className="section" style={{ paddingTop: 0 }}>
         <div className="section-title">
           Catégories
           <button className="link" onClick={() => navigate('/catalogue')}>
@@ -107,7 +124,7 @@ export default function Home() {
             >
               <div className="ico">{c.icon}</div>
               <div className="name">{c.slug}</div>
-              <div className="count">{c.count}</div>
+              <div className="count">{listings.filter((listing) => listing.category === c.slug).length}</div>
             </button>
           ))}
         </div>
@@ -129,18 +146,18 @@ export default function Home() {
 
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="card" style={{ padding: '1.1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.8rem' }}>🏪</div>
+          <div style={{ fontSize: '1.8rem' }}>🐇</div>
           <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)', margin: '.35rem 0' }}>
-            Vous élevez ? Vendez ici.
+            Vous produisez des lapins ?
           </div>
           <p className="muted" style={{ fontSize: '.85rem', marginBottom: '.9rem' }}>
-            Publiez vos annonces gratuitement et touchez 1 200+ éleveurs au Bénin.
+            Créez un compte producteur, activez votre localisation et publiez photos + caractéristiques de vos lots.
           </p>
           <button
             className="btn ocre block"
-            onClick={() => navigate(user ? '/compte/publier' : '/connexion?role=seller')}
+            onClick={() => navigate(user?.role === 'seller' ? '/compte/publier' : '/inscription?role=seller')}
           >
-            Publier une annonce
+            Compte producteur
           </button>
         </div>
       </section>

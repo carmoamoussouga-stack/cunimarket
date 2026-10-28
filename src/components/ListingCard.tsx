@@ -1,16 +1,21 @@
 import { useNavigate } from 'react-router-dom';
+import { formatKm, haversineKm } from '../lib/geo';
 import { fcfa, useApp } from '../store/context';
 import type { Listing } from '../types';
 
 export default function ListingCard({ listing }: { listing: Listing }) {
   const navigate = useNavigate();
-  const { addToCart, favorites, toggleFav } = useApp();
+  const { addToCart, favorites, toggleFav, coords } = useApp();
   const isFav = favorites.includes(listing.id);
+  const photos = listing.photos ?? [];
+  const km = coords && listing.lat != null && listing.lng != null
+    ? haversineKm(coords, { lat: listing.lat, lng: listing.lng })
+    : null;
 
   return (
     <div className="listing-card" onClick={() => navigate(`/annonce/${listing.id}`)}>
       <div className="listing-thumb" style={{ background: listing.bg }}>
-        {listing.emoji}
+        {photos[0] ? <img src={photos[0]} alt="" /> : listing.emoji}
         <button
           className="fav-btn"
           aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
@@ -26,7 +31,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
       <div className="listing-body">
         <div className="row-between">
           <span className="chip">{listing.category}</span>
-          <span className="listing-meta">{listing.date}</span>
+          <span className="listing-meta">{km != null ? formatKm(km) : listing.date}</span>
         </div>
         <div className="listing-title">{listing.title}</div>
         <div className="listing-meta">

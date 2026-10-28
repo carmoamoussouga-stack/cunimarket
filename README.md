@@ -1,54 +1,66 @@
 # CuniMarket — application mobile web (PWA)
 
-Marketplace du cuniculteur ouest-africain : lapereaux, reproducteurs, cailles, œufs, équipements
-et aliments, achetés et vendus directement entre éleveurs.
+Marketplace locale **uniquement pour les producteurs de lapins** qui n’arrivent pas à écouler
+leur cheptel, et pour les acheteurs de leur zone.
 
-Cette application est la version mobile web (installable sur téléphone) du prototype CuniMarket.
+## À qui ça s’adresse
+
+- **Producteurs / fournisseurs** : éleveurs de lapins. Compte ferme, ville ou localisation facultative,
+  publication d’annonces avec **photos réelles** et caractéristiques (race, âge, poids, sexe,
+  vaccination). Ils peuvent aussi vendre d’autres produits de la ferme (viande, fumier, cages,
+  aliments).
+- **Acheteurs** : consultent les annonces sans compte, puis choisissent une ville ou activent la
+  localisation pour estimer les distances.
 
 ## Stack
 
 - Vite + React 19 + TypeScript
 - React Router (navigation par onglets en bas d'écran)
 - `vite-plugin-pwa` (manifest, service worker, mode hors-ligne, installation sur l'écran d'accueil)
-- État global via React Context, persisté dans `localStorage` (panier, favoris, session, commandes,
-  annonces publiées)
+- Supabase Auth, catalogue, annonces et commandes partagés si configurés
+- Mode démonstration sans backend, persisté dans `localStorage`
 
 ## Démarrer
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm run build      # build de production + service worker
-npm run preview    # sert le build (nécessaire pour tester la PWA)
+npm run dev
+# Sans Supabase configuré, l'application fonctionne en mode démonstration local.
+# Pour activer Supabase, configurer .env.local et exécuter la migration SQL (voir ci-dessous).
+npm run build
+npm run preview
 npm run lint
 ```
 
+### Activer Supabase Auth
+
+1. Créer un projet Supabase.
+2. Dans les réglages Auth, autoriser l’URL locale de développement `http://localhost:5173`.
+3. Copier `.env.example` en `.env.local`, puis renseigner l’URL du projet et sa clé publique anon/publishable.
+4. Exécuter `supabase/migrations/20261020000000_pilot.sql` dans le SQL Editor Supabase.
+5. Redémarrer Vite après toute modification de `.env.local`.
+
+Ne jamais utiliser la clé secrète `service_role` dans l’application web.
+
 ## Fonctionnalités
 
-- **Accueil** : recherche, tendances, catégories, annonces récentes, CTA vendeur
-- **Catalogue** : recherche plein texte, filtres (catégorie, département, prix max) dans une
-  bottom sheet, tri, filtres reflétés dans l'URL
-- **Fiche annonce** : galerie, caractéristiques (race, âge, vaccination, stock), sélecteur de
-  quantité, ajout au panier en barre fixe, favoris, annonces similaires, profil vendeur
-- **Panier** : quantités, suppression, code promo (`CUNIMARKET10` = −10 %), récapitulatif
-- **Checkout** : coordonnées, mode de livraison (retrait / moto / inter-villes), moyen de paiement
-  (MTN MoMo, Moov, carte, Wave), modale de paiement FedaPay **simulée**, puis confirmation
-- **Compte** : connexion / inscription (acheteur ou vendeur), commandes, messagerie, favoris
-- **Espace vendeur** : tableau de bord (revenus, ventes, vues, note), mes annonces, publication
-  d'annonce avec prévisualisation en direct, finances (commission 5 %, historique FedaPay)
+- **Accueil** : positionnement producteur de lapins, accès carte de zone
+- **Près de moi** : activation GPS (ou ville de repli), carte, liste triée par distance,
+  caractéristiques d’élevage
+- **Catalogue** : lots, filtres, tri par proximité si la localisation est active
+- **Fiche annonce** : galerie photos, caractéristiques, distance, profil producteur
+- **Publication** : photos (appareil), race / âge / poids / sexe / vaccin, localisation de la ferme
+- **Comptes** : géolocalisation facultative, choix de ville, Supabase Auth si configuré
+- Panier et commandes sauvegardés localement en démo, ou synchronisés avec Supabase configuré
+- **Paiement au pilote** : paiement à la livraison ; l’application enregistre la commande sans encaisser
 
-## Données et paiement
+La consultation du catalogue, des annonces et des producteurs est libre. La localisation sert à
+calculer les distances ; la connexion est demandée pour accéder au compte et finaliser une commande.
 
-Les annonces de démonstration, commandes vendeur, conversations et paiements vivent dans
-`src/data/mock.ts`. Aucun backend n'est appelé : le paiement FedaPay est une simulation visuelle et
-aucune transaction réelle n'est effectuée. Les actions de l'utilisateur (panier, favoris, compte,
-commandes, annonces publiées) sont conservées dans `localStorage`.
+Les données de démonstration sont dans `src/data/mock.ts`. Sans configuration Supabase, les comptes,
+annonces et commandes de test restent sur l'appareil. Avec Supabase configuré et la migration appliquée,
+les comptes, annonces, stock et commandes sont partagés entre utilisateurs. Les nouvelles annonces sont
+en attente de vérification ; leur validation initiale se fait dans le tableau de bord Supabase.
 
-Pour brancher une API réelle, remplacer les lectures de `src/data/mock.ts` et les mutations du store
-(`src/store/app.tsx`) par des appels réseau : les composants ne consomment que le contexte.
-
-## Installation sur téléphone
-
-Ouvrir le site en HTTPS, puis « Ajouter à l'écran d'accueil » (Android/Chrome : menu ⋮, iOS/Safari :
-Partager). L'application s'ouvre alors en plein écran, sans barre d'adresse, et fonctionne hors
-connexion pour les pages déjà visitées.
+N'ajoutez jamais de clé `service_role` dans le navigateur. `VITE_SUPABASE_ANON_KEY` est une clé publique ;
+la sécurité des données doit être assurée par les politiques RLS de la migration.

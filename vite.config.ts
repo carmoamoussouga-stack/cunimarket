@@ -9,10 +9,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'CuniMarket — marketplace du cuniculteur',
+        name: 'CuniMarket — producteurs de lapins',
         short_name: 'CuniMarket',
         description:
-          'Achetez et vendez lapereaux, reproducteurs, cailles, équipements et aliments entre éleveurs au Bénin.',
+          'Les éleveurs de lapins vendent leurs lots près de chez vous. Photos, caractéristiques et localisation.',
         lang: 'fr',
         start_url: '/',
         scope: '/',

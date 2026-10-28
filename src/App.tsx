@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
+import Nearby from './pages/Nearby';
 import Catalogue from './pages/Catalogue';
 import ListingDetail from './pages/ListingDetail';
 import Seller from './pages/Seller';
@@ -43,6 +44,7 @@ export default function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/alentours" element={<Nearby />} />
           <Route path="/catalogue" element={<Catalogue />} />
           <Route path="/annonce/:id" element={<ListingDetail />} />
           <Route path="/vendeur/:id" element={<Seller />} />
@@ -52,14 +54,10 @@ export default function App() {
           <Route path="/inscription" element={<Auth mode="register" />} />
           <Route
             path="/checkout"
-            element={
-              <RequireAuth>
-                <Checkout />
-              </RequireAuth>
-            }
+            element={<RequireAuth><Checkout /></RequireAuth>}
           />
           <Route path="/confirmation/:ref" element={<Confirm />} />
-          <Route path="/compte" element={<Account />} />
+          <Route path="/compte" element={<RequireAuth><Account /></RequireAuth>} />
           <Route
             path="/compte/stats"
             element={

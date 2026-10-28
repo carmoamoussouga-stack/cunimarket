@@ -4,13 +4,14 @@ import TopBar from '../components/TopBar';
 import ListingCard from '../components/ListingCard';
 import Sheet from '../components/Sheet';
 import { CATEGORIES, DEPTS } from '../data/mock';
+import { haversineKm } from '../lib/geo';
 import { fcfa, useApp } from '../store/context';
 
 type Sort = 'recent' | 'price_asc' | 'price_desc';
 
 export default function Catalogue() {
   const [params, setParams] = useSearchParams();
-  const { listings } = useApp();
+  const { listings, coords } = useApp();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const search = params.get('q') ?? '';
@@ -35,8 +36,15 @@ export default function Catalogue() {
       .filter((l) => !sellerId || l.sellerId === sellerId)
       .filter((l) => l.price <= maxPrice)
       .filter((l) => !q || l.title.toLowerCase().includes(q) || (l.breed ?? '').toLowerCase().includes(q))
-      .sort((a, b) => (sort === 'price_asc' ? a.price - b.price : sort === 'price_desc' ? b.price - a.price : 0));
-  }, [listings, search, cat, dept, sellerId, maxPrice, sort]);
+      .sort((a, b) => {
+        if (sort === 'price_asc') return a.price - b.price;
+        if (sort === 'price_desc') return b.price - a.price;
+        if (coords && a.lat != null && a.lng != null && b.lat != null && b.lng != null) {
+          return haversineKm(coords, { lat: a.lat, lng: a.lng }) - haversineKm(coords, { lat: b.lat, lng: b.lng });
+        }
+        return 0;
+      });
+  }, [listings, search, cat, dept, sellerId, maxPrice, sort, coords]);
 
   const activeFilters = [cat, dept, sellerId].filter(Boolean).length + (maxPrice < 100000 ? 1 : 0);
 
@@ -56,7 +64,7 @@ export default function Catalogue() {
             🔧 Filtres{activeFilters > 0 ? ` (${activeFilters})` : ''}
           </button>
           <select className="select" value={sort} onChange={(e) => setParam('sort', e.target.value)} style={{ width: 'auto' }}>
-            <option value="recent">Plus récentes</option>
+            <option value="recent">{coords ? 'Plus proches' : 'Plus récentes'}</option>
             <option value="price_asc">Prix croissant</option>
             <option value="price_desc">Prix décroissant</option>
           </select>

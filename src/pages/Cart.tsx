@@ -100,7 +100,7 @@ export default function Cart() {
       <div className="sticky-cta">
         <button
           className="btn ocre block"
-          onClick={() => navigate(user ? `/checkout?discount=${discount}` : '/connexion?next=/checkout')}
+          onClick={() => navigate(user ? `/checkout${discount > 0 ? '?coupon=CUNIMARKET10' : ''}` : '/connexion?next=/checkout')}
         >
           Passer la commande — {fcfa(cartTotal - discount)}
         </button>

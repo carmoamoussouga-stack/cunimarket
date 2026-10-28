@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { CartItem, Listing, Order, User } from '../types';
+import type { CartItem, GeoPoint, Listing, Order, User } from '../types';
 
 export type Toast = { msg: string; type: 'success' | 'error' };
 
@@ -10,6 +10,8 @@ export type AppState = {
   favorites: string[];
   user: User | null;
   orders: Order[];
+  coords: GeoPoint | null;
+  locationAsked: boolean;
   cartTotal: number;
   cartCount: number;
   toast: Toast | null;
@@ -21,9 +23,13 @@ export type AppState = {
   toggleFav: (id: string) => void;
   signIn: (user: User) => void;
   signOut: () => void;
-  addOrder: (order: Order) => void;
-  publishListing: (listing: Listing) => void;
-  deleteListing: (id: string) => void;
+  updateUser: (patch: Partial<User>) => void;
+  setCoords: (coords: GeoPoint | null) => void;
+  setLocationAsked: (asked: boolean) => void;
+  addOrder: (order: Order) => Promise<Order>;
+  updateOrderStatus: (ref: string, status: Order['status']) => Promise<void>;
+  publishListing: (listing: Listing) => Promise<void>;
+  deleteListing: (id: string) => Promise<void>;
 };
 
 export const AppCtx = createContext<AppState | null>(null);
