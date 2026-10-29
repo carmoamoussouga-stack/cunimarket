@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
+import Admin from './pages/Admin';
+import RequireAdmin from './components/RequireAdmin';
 import Nearby from './pages/Nearby';
 import Catalogue from './pages/Catalogue';
 import ListingDetail from './pages/ListingDetail';
@@ -52,6 +54,7 @@ export default function App() {
           <Route path="/panier" element={<Cart />} />
           <Route path="/connexion" element={<Auth mode="login" />} />
           <Route path="/inscription" element={<Auth mode="register" />} />
+          <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
           <Route
             path="/checkout"
             element={<RequireAuth><Checkout /></RequireAuth>}
