@@ -2,8 +2,12 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
-import Admin from './pages/Admin';
 import RequireAdmin from './components/RequireAdmin';
+import AdminHub from './pages/admin/AdminHub';
+import AdminListings from './pages/admin/AdminListings';
+import AdminAccounts from './pages/admin/AdminAccounts';
+import AdminReports from './pages/admin/AdminReports';
+import AdminStats from './pages/admin/AdminStats';
 import Nearby from './pages/Nearby';
 import Catalogue from './pages/Catalogue';
 import ListingDetail from './pages/ListingDetail';
@@ -54,7 +58,11 @@ export default function App() {
           <Route path="/panier" element={<Cart />} />
           <Route path="/connexion" element={<Auth mode="login" />} />
           <Route path="/inscription" element={<Auth mode="register" />} />
-          <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
+          <Route path="/admin" element={<RequireAdmin><AdminHub /></RequireAdmin>} />
+          <Route path="/admin/annonces" element={<RequireAdmin><AdminListings /></RequireAdmin>} />
+          <Route path="/admin/comptes" element={<RequireAdmin><AdminAccounts /></RequireAdmin>} />
+          <Route path="/admin/signalements" element={<RequireAdmin><AdminReports /></RequireAdmin>} />
+          <Route path="/admin/statistiques" element={<RequireAdmin><AdminStats /></RequireAdmin>} />
           <Route
             path="/checkout"
             element={<RequireAuth><Checkout /></RequireAuth>}

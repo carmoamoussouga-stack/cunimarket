@@ -363,6 +363,37 @@ button {
   border-color: var(--gm);
 }
 
+/* ── Champ mot de passe avec œil afficher/masquer ────── */
+.input-wrap {
+  position: relative;
+}
+
+.input-wrap .input {
+  padding-right: 2.8rem;
+}
+
+.pwd-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.3rem;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--sll);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwd-toggle:focus-visible {
+  outline: 2px solid var(--gm);
+  border-radius: var(--r1);
+}
+
 .textarea {
   min-height: 110px;
   resize: vertical;

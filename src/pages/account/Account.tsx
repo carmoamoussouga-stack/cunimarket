@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../../components/TopBar';
+import { ADMIN_EMAIL } from '../../lib/adminAuth';
 import { useApp } from '../../store/context';
 
 const SELLER_LINKS = [
@@ -7,6 +8,10 @@ const SELLER_LINKS = [
   ['/compte/annonces', '📋', 'Mes annonces', 'Gérer et supprimer'],
   ['/compte/publier', '➕', 'Publier une annonce', 'Photos et caractéristiques'],
   ['/compte/finances', '💰', 'Finances', 'Paiements à la livraison'],
+] as const;
+
+const ADMIN_LINKS = [
+  ['/admin', '🛡️', 'Modération', 'Annonces et comptes en attente'],
 ] as const;
 
 const COMMON_LINKS = [
@@ -40,7 +45,9 @@ export default function Account() {
     );
   }
 
-  const links = user.role === 'seller' ? [...SELLER_LINKS, ...COMMON_LINKS] : COMMON_LINKS;
+  // Le lien « Modération » n'apparaît que pour le compte admin dédié.
+  const base = user.role === 'seller' ? [...SELLER_LINKS, ...COMMON_LINKS] : COMMON_LINKS;
+  const links = user.email === ADMIN_EMAIL ? [...ADMIN_LINKS, ...base] : base;
 
   return (
     <div className="page">

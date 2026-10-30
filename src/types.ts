@@ -52,7 +52,7 @@ export type Category = { slug: string; icon: string; count: number };
 
 export type CartItem = Listing & { cartQty: number };
 
-export type Role = 'buyer' | 'seller';
+export type Role = 'buyer' | 'seller' | 'admin';
 
 export type User = {
   authId?: string;

@@ -30,6 +30,7 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
     specialties: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [locHint, setLocHint] = useState('');
   const [coords, setCoords] = useState<GeoPoint | null>(null);
 
@@ -185,6 +186,22 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
                 ))}
               </div>
             </div>
+
+            {/* L'admin ne s'inscrit pas : c'est une porte avec clé. */}
+            <button
+              className="option-row"
+              style={{ width: '100%', marginBottom: '1rem', borderColor: 'var(--gd)' }}
+              onClick={() => navigate('/admin')}
+            >
+              <span style={{ fontSize: '1.5rem' }}>🛡️</span>
+              <span>
+                <span className="option-title" style={{ display: 'block' }}>Administrateur</span>
+                <span className="option-desc" style={{ display: 'block' }}>
+                  Espace de modération — accès par clé
+                </span>
+              </span>
+              <span className="muted" style={{ marginLeft: 'auto' }}>›</span>
+            </button>
             <div className="field">
               <label className="label" htmlFor="f-name">Nom complet</label>
               <input id="f-name" className="input" value={form.name} onChange={(e) => setState((f) => ({ ...f, name: e.target.value }))} placeholder="Jean Kpodji" />
@@ -249,14 +266,29 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
         </div>
         <div className="field">
           <label className="label" htmlFor="f-password">Mot de passe</label>
-          <input
-            id="f-password"
-            className="input"
-            type="password"
-            value={form.password}
-            onChange={(e) => setState((f) => ({ ...f, password: e.target.value }))}
-            placeholder="Votre mot de passe"
-          />
+          <div className="input-wrap">
+            <input
+              id="f-password"
+              className="input"
+              type={showPwd ? 'text' : 'password'}
+              value={form.password}
+              onChange={(e) => setState((f) => ({ ...f, password: e.target.value }))}
+              placeholder="Votre mot de passe"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
+            />
+            <button
+              type="button"
+              className="pwd-toggle"
+              aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              aria-pressed={showPwd}
+              onClick={() => setShowPwd((v) => !v)}
+            >
+              {showPwd ? '🙈' : '👁️'}
+            </button>
+          </div>
           {tab === 'register' && form.password && (
             <>
               <div style={{ display: 'flex', gap: 4, marginTop: '.4rem' }}>

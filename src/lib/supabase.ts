@@ -9,7 +9,7 @@ export const supabase = url && anonKey ? createClient(url, anonKey) : null;
 
 export function appUserFromSupabase(user: SupabaseUser): User {
   const metadata = user.user_metadata;
-  const role: Role = metadata.role === 'seller' ? 'seller' : 'buyer';
+  const role: Role = metadata.role === 'seller' ? 'seller' : metadata.role === 'admin' ? 'admin' : 'buyer';
 
   return {
     authId: user.id,
