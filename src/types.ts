@@ -5,6 +5,7 @@ export type Listing = {
   title: string;
   category: string;
   price: number;
+  originalPrice?: number;
   unit: string;
   qty: number;
   breed?: string;
@@ -66,6 +67,7 @@ export type User = {
   years?: number;
   specialties?: string[];
   capacity?: string;
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
   lat?: number;
   lng?: number;
 };

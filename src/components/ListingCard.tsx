@@ -38,6 +38,11 @@ export default function ListingCard({ listing }: { listing: Listing }) {
           📍 {listing.city}, {listing.dept}
         </div>
         <div className="listing-price">
+          {listing.originalPrice != null && listing.originalPrice > listing.price && (
+            <span style={{ display: 'block', color: 'var(--sll)', fontSize: '.75rem', textDecoration: 'line-through' }}>
+              {fcfa(listing.originalPrice)}
+            </span>
+          )}
           {fcfa(listing.price)}
           {listing.unit && <small> / {listing.unit}</small>}
         </div>

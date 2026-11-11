@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../../components/TopBar';
 import { CATEGORIES, CITY_COORDS, DEPTS } from '../../data/mock';
 import { compressImage } from '../../lib/photos';
+import { supabase } from '../../lib/supabase';
 import { fcfa, useApp } from '../../store/context';
 
 const BG_BY_CATEGORY: Record<string, string> = {
@@ -16,23 +17,41 @@ const BG_BY_CATEGORY: Record<string, string> = {
 
 export default function Publish() {
   const navigate = useNavigate();
-  const { publishListing, showToast, user, coords } = useApp();
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [form, setForm] = useState({
-    title: '',
-    category: '',
-    price: '',
-    qty: '',
-    unit: 'tête',
-    city: user?.city ?? '',
-    dept: user?.dept ?? '',
-    desc: '',
-    breed: '',
-    age: '',
-    weight: '',
-    sex: '',
-    vaccinated: false,
-  });
+  const [params] = useSearchParams();
+  const editId = params.get('id');
+  const { publishListing, updateListing, ownListings, showToast, user, coords } = useApp();
+  const editingListing = ownListings.find((listing) => listing.id === editId);
+  const [photoEdits, setPhotoEdits] = useState<string[] | null>(null);
+  const photos = photoEdits ?? editingListing?.photos ?? [];
+  const setPhotos = (update: string[] | ((current: string[]) => string[])) => {
+    setPhotoEdits((current) => typeof update === 'function'
+      ? update(current ?? editingListing?.photos ?? [])
+      : update,
+    );
+  };
+  const defaultForm = {
+    title: editingListing?.title ?? '',
+    category: editingListing?.category ?? '',
+    normalPrice: editingListing ? String(editingListing.originalPrice ?? editingListing.price) : '',
+    salePrice: editingListing?.originalPrice && editingListing.originalPrice > editingListing.price
+      ? String(editingListing.price)
+      : '',
+    qty: editingListing ? String(editingListing.qty) : '',
+    unit: editingListing?.unit ?? 'tête',
+    city: editingListing?.city ?? user?.city ?? '',
+    dept: editingListing?.dept ?? user?.dept ?? '',
+    desc: editingListing?.desc ?? '',
+    breed: editingListing?.breed ?? '',
+    age: editingListing?.age != null ? String(editingListing.age) : '',
+    weight: editingListing?.weight != null ? String(editingListing.weight) : '',
+    sex: editingListing?.sex ?? '',
+    vaccinated: editingListing?.vaccinated ?? false,
+  };
+  const [formEdits, setFormEdits] = useState<Partial<typeof defaultForm>>({});
+  const form = { ...defaultForm, ...formEdits };
+  const setForm = (update: (current: typeof defaultForm) => typeof defaultForm) => {
+    setFormEdits((current) => update({ ...defaultForm, ...current }));
+  };
 
   const icon = CATEGORIES.find((c) => c.slug === form.category)?.icon ?? '🐇';
 
@@ -49,18 +68,29 @@ export default function Publish() {
   };
 
   const submit = async () => {
-    if (!form.title || !form.category || !form.price) {
-      showToast('Titre, catégorie et prix obligatoires', 'error');
+    if (editId && !editingListing) {
+      showToast('Annonce à modifier introuvable.', 'error');
+      return;
+    }
+    if (!form.title || !form.category || !form.normalPrice) {
+      showToast('Titre, catégorie et prix normal obligatoires', 'error');
+      return;
+    }
+    const normalPrice = Number(form.normalPrice);
+    const price = form.salePrice ? Number(form.salePrice) : normalPrice;
+    if (normalPrice <= 0 || price <= 0 || price > normalPrice) {
+      showToast('Le prix de vente doit être positif et inférieur ou égal au prix normal.', 'error');
       return;
     }
     const city = form.city || user?.city || 'Cotonou';
     const geo = coords ?? CITY_COORDS[city] ?? { lat: 6.3654, lng: 2.4183 };
     try {
-      await publishListing({
-      id: `own-${Date.now()}`,
+      const listing = {
+      id: editId ?? `own-${Date.now()}`,
       title: form.title,
       category: form.category,
-      price: Number(form.price),
+      price,
+      originalPrice: normalPrice,
       unit: form.unit,
       qty: Number(form.qty) || 1,
       breed: form.breed || undefined,
@@ -75,16 +105,22 @@ export default function Publish() {
       lng: geo.lng,
       seller: user?.farmName || user?.name || 'Mon élevage',
       sellerId: 'me',
-      verified: false,
-      rating: 5,
-      sales: 0,
+      verified: editingListing?.verified ?? false,
+      rating: editingListing?.rating ?? 5,
+      sales: editingListing?.sales ?? 0,
       emoji: icon,
       bg: BG_BY_CATEGORY[form.category] ?? '#e8f5e9',
-      date: "À l'instant",
-      views: 0,
+      date: editingListing?.date ?? "À l'instant",
+      views: editingListing?.views ?? 0,
       desc: form.desc,
-      });
-      showToast('Annonce publiée !');
+      };
+      if (editId) {
+        await updateListing(editId, listing);
+        showToast('Annonce modifiée. Elle sera vérifiée par un administrateur.');
+      } else {
+        await publishListing(listing);
+        showToast('Annonce publiée !');
+      }
       navigate('/compte/annonces');
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Impossible de publier cette annonce.', 'error');
@@ -93,7 +129,16 @@ export default function Publish() {
 
   return (
     <div className="page" style={{ paddingBottom: 96 }}>
-      <TopBar title="Publier une annonce" back showCart={false} />
+      <TopBar title={editId ? "Modifier l'annonce" : "Publier une annonce"} back showCart={false} />
+      {supabase && user?.role === 'seller' && user.verificationStatus !== 'verified' && (
+        <div className="section" style={{ paddingBottom: 0 }}>
+          <div className="card" style={{ padding: '.9rem', color: 'var(--er)' }}>
+            {user.verificationStatus === 'rejected'
+              ? 'Votre compte producteur a été refusé. Contactez l’administration pour en savoir plus.'
+              : 'Votre compte producteur est en attente d’approbation par un administrateur. Vous pourrez publier ou modifier vos annonces après validation.'}
+          </div>
+        </div>
+      )}
       <div className="section">
         <div className="card" style={{ padding: '1rem', marginBottom: '.9rem' }}>
           <div className="label" style={{ marginBottom: '.8rem' }}>📸 Photos de vos lapins ou produits</div>
@@ -135,13 +180,18 @@ export default function Publish() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.6rem' }}>
             <div className="field">
-              <label className="label" htmlFor="p-price">Prix (FCFA)</label>
-              <input id="p-price" className="input" inputMode="numeric" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value.replace(/\D/g, '') }))} placeholder="1000" />
+              <label className="label" htmlFor="p-normal-price">Prix normal (FCFA)</label>
+              <input id="p-normal-price" className="input" inputMode="numeric" value={form.normalPrice} onChange={(e) => setForm((f) => ({ ...f, normalPrice: e.target.value.replace(/\D/g, '') }))} placeholder="1000" />
             </div>
             <div className="field">
-              <label className="label" htmlFor="p-qty">Quantité</label>
-              <input id="p-qty" className="input" inputMode="numeric" value={form.qty} onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value.replace(/\D/g, '') }))} placeholder="10" />
+              <label className="label" htmlFor="p-sale-price">Prix de vente (FCFA, facultatif)</label>
+              <input id="p-sale-price" className="input" inputMode="numeric" value={form.salePrice} onChange={(e) => setForm((f) => ({ ...f, salePrice: e.target.value.replace(/\D/g, '') }))} placeholder="Identique au prix normal" />
+              <span className="muted" style={{ fontSize: '.75rem' }}>Laissez vide pour vendre au prix normal.</span>
             </div>
+          </div>
+          <div className="field">
+            <label className="label" htmlFor="p-qty">Quantité</label>
+            <input id="p-qty" className="input" inputMode="numeric" value={form.qty} onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value.replace(/\D/g, '') }))} placeholder="10" />
           </div>
           <div className="field">
             <label className="label" htmlFor="p-unit">Unité</label>
@@ -215,7 +265,12 @@ export default function Publish() {
               {form.title || 'Titre de votre annonce'}
             </div>
             <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--oc)' }}>
-              {form.price ? fcfa(Number(form.price)) : '0 FCFA'}
+              {form.normalPrice && form.salePrice && Number(form.salePrice) < Number(form.normalPrice) && (
+                <span style={{ display: 'block', color: 'var(--sll)', fontSize: '.78rem', textDecoration: 'line-through' }}>
+                  {fcfa(Number(form.normalPrice))}
+                </span>
+              )}
+              {fcfa(Number(form.salePrice || form.normalPrice || 0))}
             </div>
             <div className="muted" style={{ fontSize: '.76rem', marginTop: '.3rem' }}>📍 {form.city || 'Votre ville'}, {form.dept || 'département'}</div>
           </div>
@@ -223,7 +278,13 @@ export default function Publish() {
       </div>
 
       <div className="sticky-cta">
-        <button className="btn block ocre" onClick={() => void submit()}>🚀 Publier l'annonce</button>
+        <button
+          className="btn block ocre"
+          onClick={() => void submit()}
+          disabled={Boolean(supabase) && user?.role === 'seller' && user.verificationStatus !== 'verified'}
+        >
+          {editId ? '💾 Enregistrer les modifications' : "🚀 Publier l'annonce"}
+        </button>
       </div>
     </div>
   );

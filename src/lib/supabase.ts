@@ -7,9 +7,21 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabase = url && anonKey ? createClient(url, anonKey) : null;
 
-export function appUserFromSupabase(user: SupabaseUser): User {
+export async function appUserFromSupabase(user: SupabaseUser): Promise<User> {
+  if (!supabase) throw new Error('Supabase n’est pas configuré.');
   const metadata = user.user_metadata;
-  const role: Role = metadata.role === 'seller' ? 'seller' : metadata.role === 'admin' ? 'admin' : 'buyer';
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('role, verification_status')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (error) throw new Error(`Chargement du profil impossible : ${error.message}`);
+  const metadataRole: Role = metadata.role === 'seller' ? 'seller' : metadata.role === 'admin' ? 'admin' : 'buyer';
+  const role: Role = profile?.role === 'seller' || profile?.role === 'admin'
+    ? profile.role
+    : profile?.role === 'buyer'
+      ? 'buyer'
+      : metadataRole;
 
   return {
     authId: user.id,
@@ -19,6 +31,9 @@ export function appUserFromSupabase(user: SupabaseUser): User {
     dept: typeof metadata.dept === 'string' ? metadata.dept : '',
     city: typeof metadata.city === 'string' ? metadata.city : '',
     role,
+    verificationStatus: profile?.verification_status === 'verified' || profile?.verification_status === 'rejected'
+      ? profile.verification_status
+      : 'pending',
     farmName: typeof metadata.farmName === 'string' ? metadata.farmName : undefined,
     years: typeof metadata.years === 'number' ? metadata.years : undefined,
     capacity: typeof metadata.capacity === 'string' ? metadata.capacity : undefined,

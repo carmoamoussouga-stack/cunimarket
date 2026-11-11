@@ -29,6 +29,7 @@ export type AppState = {
   addOrder: (order: Order) => Promise<Order>;
   updateOrderStatus: (ref: string, status: Order['status']) => Promise<void>;
   publishListing: (listing: Listing) => Promise<void>;
+  updateListing: (id: string, listing: Listing) => Promise<void>;
   deleteListing: (id: string) => Promise<void>;
 };
 

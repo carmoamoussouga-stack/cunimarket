@@ -106,7 +106,7 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
         });
         if (error) throw error;
         if (!data.user) throw new Error('Aucun utilisateur n’a été retourné.');
-        const user = appUserFromSupabase(data.user);
+        const user = await appUserFromSupabase(data.user);
         signIn(user);
         showToast('Bienvenue sur CuniMarket !');
         navigate(next ?? (user.role === 'seller' ? '/compte' : '/alentours'), { replace: true });
@@ -128,7 +128,7 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
           setTab('login');
           return;
         }
-        signIn(appUserFromSupabase(data.user));
+        signIn(await appUserFromSupabase(data.user));
       } else {
         signIn(profile);
       }
@@ -161,6 +161,18 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
             <p className="muted" style={{ fontSize: '.87rem', margin: '.3rem 0 1.25rem' }}>
               Producteurs et acheteurs — un seul espace pour écouler et trouver des lapins près de chez vous.
             </p>
+            <button
+              className="option-row"
+              style={{ width: '100%', marginBottom: '1rem', borderColor: 'var(--gd)' }}
+              onClick={() => navigate('/admin')}
+            >
+              <span style={{ fontSize: '1.5rem' }}>🛡️</span>
+              <span>
+                <span className="option-title" style={{ display: 'block' }}>Administrateur</span>
+                <span className="option-desc" style={{ display: 'block' }}>Connexion à l’espace de modération</span>
+              </span>
+              <span className="muted" style={{ marginLeft: 'auto' }}>›</span>
+            </button>
             {!supabase && (
               <p className="muted" style={{ fontSize: '.78rem', marginBottom: '1rem' }}>
                 {authUnavailable
@@ -205,21 +217,6 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
               </div>
             </div>
 
-            {/* L'admin ne s'inscrit pas : c'est une porte avec clé. */}
-            <button
-              className="option-row"
-              style={{ width: '100%', marginBottom: '1rem', borderColor: 'var(--gd)' }}
-              onClick={() => navigate('/admin')}
-            >
-              <span style={{ fontSize: '1.5rem' }}>🛡️</span>
-              <span>
-                <span className="option-title" style={{ display: 'block' }}>Administrateur</span>
-                <span className="option-desc" style={{ display: 'block' }}>
-                  Espace de modération — accès par clé
-                </span>
-              </span>
-              <span className="muted" style={{ marginLeft: 'auto' }}>›</span>
-            </button>
             <div className="field">
               <label className="label" htmlFor="f-name">Nom complet</label>
               <input id="f-name" className="input" value={form.name} onChange={(e) => setState((f) => ({ ...f, name: e.target.value }))} placeholder="Jean Kpodji" />

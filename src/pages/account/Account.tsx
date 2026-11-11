@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../../components/TopBar';
 import { ADMIN_EMAIL } from '../../lib/adminAuth';
+import { supabase } from '../../lib/supabase';
 import { useApp } from '../../store/context';
 
 const SELLER_LINKS = [
@@ -46,7 +47,9 @@ export default function Account() {
   }
 
   // Le lien « Modération » n'apparaît que pour le compte admin dédié.
-  const base = user.role === 'seller' ? [...SELLER_LINKS, ...COMMON_LINKS] : COMMON_LINKS;
+  const base = user.role === 'seller'
+    ? (!supabase || user.verificationStatus === 'verified' ? [...SELLER_LINKS, ...COMMON_LINKS] : [])
+    : COMMON_LINKS;
   const links = user.email === ADMIN_EMAIL ? [...ADMIN_LINKS, ...base] : base;
 
   return (
@@ -64,6 +67,19 @@ export default function Account() {
             </span>
           </div>
         </div>
+
+        {user.role === 'seller' && user.verificationStatus !== 'verified' && (
+          <div className="card" style={{ padding: '.9rem', marginTop: '.8rem', border: '1.5px solid var(--oc)' }}>
+            <div style={{ fontFamily: 'var(--fd)', fontWeight: 700, color: 'var(--gd)' }}>
+              {user.verificationStatus === 'rejected' ? 'Compte producteur refusé' : 'Compte producteur en attente'}
+            </div>
+            <div className="muted" style={{ fontSize: '.8rem', marginTop: '.25rem' }}>
+              {user.verificationStatus === 'rejected'
+                ? 'Votre compte n’a pas été approuvé. Contactez l’administrateur.'
+                : 'Un administrateur doit approuver votre compte avant que vous puissiez publier ou gérer vos annonces. Après validation, reconnectez-vous.'}
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '.6rem', margin: '.9rem 0' }}>
           {[

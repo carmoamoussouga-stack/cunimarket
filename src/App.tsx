@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
 import RequireAdmin from './components/RequireAdmin';
@@ -24,12 +24,30 @@ import Publish from './pages/account/Publish';
 import Orders from './pages/account/Orders';
 import Messages from './pages/account/Messages';
 import Finances from './pages/account/Finances';
+import { supabase } from './lib/supabase';
 import { useApp } from './store/context';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user } = useApp();
   const location = useLocation();
   if (!user) return <Navigate to={`/connexion?next=${encodeURIComponent(location.pathname)}`} replace />;
+  return <>{children}</>;
+}
+
+function RequireApprovedProducer({ children }: { children: React.ReactNode }) {
+  const { user } = useApp();
+  if (supabase && user?.role === 'seller' && user.verificationStatus !== 'verified') {
+    return (
+      <div className="page">
+        <div className="section">
+          <div className="card" style={{ padding: '1rem' }}>
+            Votre compte producteur doit être approuvé par un administrateur avant d’accéder à cet espace.
+            <Link className="btn block" style={{ marginTop: '.8rem' }} to="/compte">Retour à mon compte</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return <>{children}</>;
 }
 
@@ -65,7 +83,7 @@ export default function App() {
           <Route path="/admin/statistiques" element={<RequireAdmin><AdminStats /></RequireAdmin>} />
           <Route
             path="/checkout"
-            element={<RequireAuth><Checkout /></RequireAuth>}
+            element={<RequireAuth><RequireApprovedProducer><Checkout /></RequireApprovedProducer></RequireAuth>}
           />
           <Route path="/confirmation/:ref" element={<Confirm />} />
           <Route path="/compte" element={<RequireAuth><Account /></RequireAuth>} />
@@ -73,7 +91,7 @@ export default function App() {
             path="/compte/stats"
             element={
               <RequireAuth>
-                <Stats />
+                <RequireApprovedProducer><Stats /></RequireApprovedProducer>
               </RequireAuth>
             }
           />
@@ -81,7 +99,7 @@ export default function App() {
             path="/compte/annonces"
             element={
               <RequireAuth>
-                <MyListings />
+                <RequireApprovedProducer><MyListings /></RequireApprovedProducer>
               </RequireAuth>
             }
           />
@@ -89,7 +107,7 @@ export default function App() {
             path="/compte/publier"
             element={
               <RequireAuth>
-                <Publish />
+                <RequireApprovedProducer><Publish /></RequireApprovedProducer>
               </RequireAuth>
             }
           />
@@ -97,7 +115,7 @@ export default function App() {
             path="/compte/commandes"
             element={
               <RequireAuth>
-                <Orders />
+                <RequireApprovedProducer><Orders /></RequireApprovedProducer>
               </RequireAuth>
             }
           />
@@ -105,7 +123,7 @@ export default function App() {
             path="/compte/messages"
             element={
               <RequireAuth>
-                <Messages />
+                <RequireApprovedProducer><Messages /></RequireApprovedProducer>
               </RequireAuth>
             }
           />
@@ -113,7 +131,7 @@ export default function App() {
             path="/compte/finances"
             element={
               <RequireAuth>
-                <Finances />
+                <RequireApprovedProducer><Finances /></RequireApprovedProducer>
               </RequireAuth>
             }
           />

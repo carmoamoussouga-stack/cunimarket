@@ -34,25 +34,35 @@ export default function MyListings() {
                     {l.category} · {l.views} vues · {l.verified ? 'Vérifiée' : 'À vérifier'}
                   </div>
                   <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, fontSize: '.82rem', color: 'var(--oc)' }}>
+                    {l.originalPrice != null && l.originalPrice > l.price && (
+                      <span style={{ display: 'block', color: 'var(--sll)', fontSize: '.72rem', textDecoration: 'line-through' }}>
+                        {fcfa(l.originalPrice)}
+                      </span>
+                    )}
                     {fcfa(l.price)}{l.unit && `/${l.unit}`}
                   </div>
                 </div>
-                {own && l.active !== false ? (
-                  <button
-                    className="btn danger"
-                    onClick={() => {
-                      void deleteListing(l.id).then(() => showToast('Annonce archivée')).catch((error: unknown) => {
-                        showToast(error instanceof Error ? error.message : 'Suppression impossible.', 'error');
-                      });
-                    }}
-                  >
-                    Archiver
-                  </button>
-                ) : own ? (
-                  <span className="status">Archivée</span>
-                ) : (
-                  <span className="status" style={{ color: 'var(--su)' }}>● Actif</span>
-                )}
+                {own ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '.35rem' }}>
+                    {l.active !== false ? (
+                      <>
+                        <button className="btn ghost" onClick={() => navigate(`/compte/publier?id=${encodeURIComponent(l.id)}`)}>
+                          Modifier
+                        </button>
+                        <button
+                          className="btn danger"
+                          onClick={() => {
+                            void deleteListing(l.id).then(() => showToast('Annonce supprimée de votre catalogue')).catch((error: unknown) => {
+                              showToast(error instanceof Error ? error.message : 'Suppression impossible.', 'error');
+                            });
+                          }}
+                        >
+                          Supprimer
+                        </button>
+                      </>
+                    ) : <span className="status">Archivée</span>}
+                  </div>
+                ) : <span className="status" style={{ color: 'var(--su)' }}>● Actif</span>}
               </div>
             );
           })}

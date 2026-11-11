@@ -11,6 +11,7 @@ export default function ListingDetail() {
   const { listings, addToCart, favorites, toggleFav, user, coords } = useApp();
   const [qty, setQty] = useState(1);
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const listing = listings.find((l) => l.id === id);
   if (!listing) {
@@ -41,7 +42,14 @@ export default function ListingDetail() {
 
       <div style={{ background: listing.bg, height: 240, display: 'grid', placeItems: 'center', fontSize: '6rem', position: 'relative', overflow: 'hidden' }}>
         {photos[photoIdx] ? (
-          <img src={photos[photoIdx]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <button
+            type="button"
+            aria-label="Agrandir la photo"
+            onClick={() => setLightboxOpen(true)}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, border: 0, background: 'transparent', cursor: 'zoom-in' }}
+          >
+            <img src={photos[photoIdx]} alt={`Photo ${photoIdx + 1} de ${listing.title}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </button>
         ) : (
           listing.emoji
         )}
@@ -83,6 +91,11 @@ export default function ListingDetail() {
             <div>
               <div className="muted" style={{ fontSize: '.72rem' }}>Prix unitaire</div>
               <div style={{ fontFamily: 'var(--fd)', fontSize: '1.4rem', fontWeight: 800, color: 'var(--oc)' }}>
+                {listing.originalPrice != null && listing.originalPrice > listing.price && (
+                  <span style={{ display: 'block', fontSize: '.9rem', color: 'var(--sll)', textDecoration: 'line-through' }}>
+                    {fcfa(listing.originalPrice)}
+                  </span>
+                )}
                 {fcfa(listing.price)}
                 {listing.unit && <small style={{ fontSize: '.75rem', color: 'var(--sll)', fontWeight: 400 }}> / {listing.unit}</small>}
               </div>
@@ -135,6 +148,38 @@ export default function ListingDetail() {
           💬 Contacter le producteur
         </button>
       </div>
+
+      {lightboxOpen && photos[photoIdx] && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo de l’annonce"
+          onClick={() => setLightboxOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.92)', display: 'grid', placeItems: 'center', padding: '1rem' }}
+        >
+          <button
+            type="button"
+            aria-label="Fermer la photo"
+            onClick={() => setLightboxOpen(false)}
+            style={{ position: 'absolute', top: 16, right: 16, color: '#fff', background: 'transparent', border: 0, fontSize: '2rem', cursor: 'pointer' }}
+          >
+            ×
+          </button>
+          <img
+            src={photos[photoIdx]}
+            alt={`Photo ${photoIdx + 1} de ${listing.title}`}
+            onClick={(event) => event.stopPropagation()}
+            style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }}
+          />
+          {photos.length > 1 && (
+            <div style={{ position: 'absolute', bottom: 20, display: 'flex', gap: '.7rem' }} onClick={(event) => event.stopPropagation()}>
+              <button className="btn ghost" onClick={() => setPhotoIdx((index) => (index - 1 + photos.length) % photos.length)}>‹</button>
+              <span style={{ color: '#fff', alignSelf: 'center' }}>{photoIdx + 1} / {photos.length}</span>
+              <button className="btn ghost" onClick={() => setPhotoIdx((index) => (index + 1) % photos.length)}>›</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {related.length > 0 && (
         <div className="section" style={{ paddingTop: 0 }}>

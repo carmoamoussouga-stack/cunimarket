@@ -16,17 +16,19 @@ Compte dédié à la vente de lapins, équipements ou aliments pour lapins.
    - Renseigner: Email, mot de passe, nom, téléphone, département, ville
    - Nom de la ferme, ville et département requis ; années, capacité et spécialités facultatives
    - La localisation est facultative : choisir une ville ou activer le GPS
-   - → Redirection vers `/compte` (Tableau de bord)
+   - Le compte doit être approuvé par un administrateur avant l'accès aux fonctions producteur
+   - → Redirection vers `/compte` (statut d'approbation affiché)
 
 2. **Publier une annonce** → `/compte/publier`
    - Ajouter photos (jusqu'à 4, compression auto 900px @ 72% JPG)
-   - Titre, catégorie, prix, quantité, unité (tête, kg, lot…)
+   - Titre, catégorie, prix normal et prix de vente facultatif, quantité, unité (tête, kg, lot…)
    - **Caractéristiques** : Race, âge (jours), poids (g), sexe, vaccin
    - Description, localisation (dept/ville auto-remplies)
    - → En mode Supabase, l'annonce est publiée avec statut « à vérifier »
 
 3. **Gérer ses annonces** → `/compte/annonces`
-   - Archiver ou consulter ses annonces
+   - Modifier ou supprimer ses annonces
+   - Les modifications sont soumises à une nouvelle vérification
 
 4. **Statistiques** → `/compte/stats`
    - Commandes et paiements déclarés sur cet appareil ou dans Supabase
@@ -104,6 +106,7 @@ Compte pour trouver et acheter des lapins proches de sa localisation.
 - `/panier` — Panier d'achat
 - `/connexion` — Login
 - `/inscription` — Register
+- L'accès administrateur se fait depuis l'écran de connexion, pas depuis l'inscription
 - `/confirmation/:ref` — Récapitulatif de commande, paiement dû à la livraison
 
 ### Pages Protégées (authentification)

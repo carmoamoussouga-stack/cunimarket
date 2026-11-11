@@ -10,6 +10,7 @@ import {
   createRemoteOrder,
   deleteRemoteListing,
   fetchMarketplaceData,
+  updateRemoteListing,
   updateRemoteOrderStatus,
 } from '../lib/marketplace';
 
@@ -73,14 +74,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!supabase) return;
 
     let active = true;
-    void supabase.auth.getSession().then(({ data, error }) => {
+    void supabase.auth.getSession().then(async ({ data, error }) => {
       if (error) {
         showToast('Impossible de vérifier la session Supabase', 'error');
         console.error('Supabase session check failed:', error.message);
         return;
       }
       if (active && data.session) {
-        const user = appUserFromSupabase(data.session.user);
+        const user = await appUserFromSupabase(data.session.user);
         setState((prev) => ({
           ...prev,
           user,
@@ -88,19 +89,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }));
         if (user.authId) void refreshRemoteData(user.authId);
       }
+    }).catch((error: unknown) => {
+      if (!active) return;
+      console.error('Supabase profile load failed:', error);
+      showToast(error instanceof Error ? error.message : 'Impossible de charger le profil.', 'error');
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
       if (session) {
-        const user = appUserFromSupabase(session.user);
-        setState((prev) => ({
-          ...prev,
-          user,
-          coords: user.lat != null && user.lng != null ? { lat: user.lat, lng: user.lng } : prev.coords,
-        }));
-        const userId = user.authId;
-        if (userId) window.setTimeout(() => void refreshRemoteData(userId), 0);
+        void appUserFromSupabase(session.user).then((user) => {
+          if (!active) return;
+          setState((prev) => ({
+            ...prev,
+            user,
+            coords: user.lat != null && user.lng != null ? { lat: user.lat, lng: user.lng } : prev.coords,
+          }));
+          const userId = user.authId;
+          if (userId) window.setTimeout(() => void refreshRemoteData(userId), 0);
+        }).catch((error: unknown) => {
+          if (!active) return;
+          console.error('Supabase profile load failed:', error);
+          showToast(error instanceof Error ? error.message : 'Impossible de charger le profil.', 'error');
+        });
       } else {
         setState((prev) => ({ ...prev, user: null }));
         setRemoteListings([]);
@@ -263,11 +274,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (state.user?.role !== 'seller' || !state.user.authId) {
             throw new Error('Connectez-vous avec un compte producteur pour publier.');
           }
+          if (state.user.verificationStatus !== 'verified') {
+            throw new Error('Votre compte producteur doit être approuvé par un administrateur avant de publier.');
+          }
           const created = await createRemoteListing(state.user.authId, listing);
           setRemoteListings((previous) => [created, ...previous]);
           return;
         }
         setState((previous) => ({ ...previous, ownListings: [listing, ...previous.ownListings] }));
+      },
+      updateListing: async (id, listing) => {
+        if (supabase) {
+          if (state.user?.role !== 'seller' || !state.user.authId) {
+            throw new Error('Connectez-vous avec un compte producteur pour modifier une annonce.');
+          }
+          if (state.user.verificationStatus !== 'verified') {
+            throw new Error('Votre compte producteur doit être approuvé par un administrateur avant de modifier une annonce.');
+          }
+          const updated = await updateRemoteListing(state.user.authId, { ...listing, id });
+          setRemoteListings((previous) => previous.map((item) => item.id === id ? updated : item));
+          return;
+        }
+        setState((previous) => ({
+          ...previous,
+          ownListings: previous.ownListings.map((item) => item.id === id ? { ...listing, id } : item),
+        }));
       },
       deleteListing: async (id) => {
         if (supabase) {

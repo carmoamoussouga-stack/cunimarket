@@ -7,6 +7,7 @@ type StoredListing = {
   title: string;
   category: string;
   price: number;
+  original_price: number | null;
   unit: string;
   quantity: number;
   breed: string | null;
@@ -63,6 +64,7 @@ function mapListing(row: StoredListing): Listing {
     title: row.title,
     category: row.category,
     price: row.price,
+    originalPrice: row.original_price ?? undefined,
     unit: row.unit,
     qty: row.quantity,
     breed: row.breed ?? undefined,
@@ -143,6 +145,7 @@ export async function createRemoteListing(sellerId: string, listing: Listing): P
     title: listing.title.trim(),
     category: listing.category,
     price: listing.price,
+    original_price: listing.originalPrice ?? null,
     unit: listing.unit,
     quantity: listing.qty,
     breed: listing.breed ?? null,
@@ -168,13 +171,48 @@ export async function deleteRemoteListing(listingId: string, sellerId: string): 
   if (!supabase) throw new Error('Supabase n’est pas configuré.');
   const { data, error } = await supabase
     .from('listings')
-    .update({ active: false, archived: true })
+    .update({ active: false, archived: true, verification_status: 'pending' })
     .eq('id', listingId)
     .eq('seller_id', sellerId)
     .select('id')
     .maybeSingle();
   if (error) throw new Error(`Suppression impossible : ${error.message}`);
   if (!data) throw new Error('Annonce introuvable ou vous ne pouvez pas l’archiver.');
+}
+
+export async function updateRemoteListing(sellerId: string, listing: Listing): Promise<Listing> {
+  if (!supabase) throw new Error('Supabase n’est pas configuré.');
+  const { data, error } = await supabase
+    .from('listings')
+    .update({
+      title: listing.title.trim(),
+      category: listing.category,
+      price: listing.price,
+      original_price: listing.originalPrice ?? null,
+      unit: listing.unit,
+      quantity: listing.qty,
+      breed: listing.breed ?? null,
+      age_days: listing.age ?? null,
+      weight_grams: listing.weight ?? null,
+      vaccinated: listing.vaccinated ?? false,
+      sex: listing.sex ?? null,
+      photos: listing.photos,
+      seller_name: listing.seller,
+      department: listing.dept,
+      city: listing.city,
+      emoji: listing.emoji,
+      background_color: listing.bg,
+      latitude: listing.lat ?? null,
+      longitude: listing.lng ?? null,
+      description: listing.desc,
+      verification_status: 'pending',
+    })
+    .eq('id', listing.id)
+    .eq('seller_id', sellerId)
+    .select('*')
+    .single();
+  if (error) throw new Error(`Modification impossible : ${error.message}`);
+  return mapListing(data as StoredListing);
 }
 
 export async function createRemoteOrder(
