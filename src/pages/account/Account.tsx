@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../../components/TopBar';
-import { ADMIN_EMAIL } from '../../lib/adminAuth';
 import { supabase } from '../../lib/supabase';
 import { useApp } from '../../store/context';
 
@@ -9,10 +8,6 @@ const SELLER_LINKS = [
   ['/compte/annonces', '📋', 'Mes annonces', 'Gérer et supprimer'],
   ['/compte/publier', '➕', 'Publier une annonce', 'Photos et caractéristiques'],
   ['/compte/finances', '💰', 'Finances', 'Paiements à la livraison'],
-] as const;
-
-const ADMIN_LINKS = [
-  ['/admin', '🛡️', 'Modération', 'Annonces et comptes en attente'],
 ] as const;
 
 const COMMON_LINKS = [
@@ -50,33 +45,55 @@ export default function Account() {
   const base = user.role === 'seller'
     ? (!supabase || user.verificationStatus === 'verified' ? [...SELLER_LINKS, ...COMMON_LINKS] : [])
     : COMMON_LINKS;
-  const links = user.email === ADMIN_EMAIL ? [...ADMIN_LINKS, ...base] : base;
-
   return (
     <div className="page">
       <TopBar title="Mon compte" />
       <div className="section">
         <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '.9rem' }}>
-          <div className="thumb-sm" style={{ background: 'var(--gd)', color: '#fff', width: 56, height: 56 }}>🐇</div>
+          <div className="thumb-sm" style={{ background: 'var(--gd)', color: '#fff', width: 56, height: 56 }}>
+            {user.role === 'admin' ? '🛡️' : user.role === 'seller' ? '🐇' : '🛒'}
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)' }}>{user.name}</div>
             <div className="muted" style={{ fontSize: '.78rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
             <span className="chip" style={{ marginTop: '.3rem', display: 'inline-block' }}>
-              {user.role === 'seller' ? '🐇 Producteur' : '🛒 Acheteur'}
+              {user.role === 'seller' ? '🐇 Producteur' : user.role === 'admin' ? '🛡️ Administrateur' : '🛒 Acheteur'}
               {user.lat != null ? ' · 📍 Localisé' : ''}
             </span>
           </div>
         </div>
 
-        {user.role === 'seller' && user.verificationStatus !== 'verified' && (
-          <div className="card" style={{ padding: '.9rem', marginTop: '.8rem', border: '1.5px solid var(--oc)' }}>
+        {supabase && user.role === 'admin' && (
+          <div className="admin-shortcut">
+            <div className="admin-shortcut-copy">
+              <span className="admin-eyebrow">ACCÈS ADMINISTRATEUR</span>
+              <strong>Console de modération</strong>
+              <small>Gérer les comptes, les annonces et les signalements.</small>
+            </div>
+            <button className="btn ocre" onClick={() => navigate('/admin')}>Ouvrir →</button>
+          </div>
+        )}
+        {supabase && user.role !== 'admin' && user.accountStatus === 'suspended' && (
+          <div className="card account-status-card" style={{ marginTop: '.8rem' }}>
+            <div className="account-status-icon">🔒</div>
+            <div>
+              <strong>Compte désactivé</strong>
+              <p>L’accès au compte a été suspendu par l’administrateur. Contactez l’assistance si vous pensez qu’il s’agit d’une erreur.</p>
+            </div>
+          </div>
+        )}
+        {supabase && user.role !== 'admin' && user.accountStatus !== 'suspended' && user.verificationStatus !== 'verified' && (
+          <div className="card account-status-card" style={{ marginTop: '.8rem' }}>
+            <div className="account-status-icon">⏳</div>
+            <div>
             <div style={{ fontFamily: 'var(--fd)', fontWeight: 700, color: 'var(--gd)' }}>
-              {user.verificationStatus === 'rejected' ? 'Compte producteur refusé' : 'Compte producteur en attente'}
+              {user.verificationStatus === 'rejected' ? 'Compte refusé' : 'Compte en attente d’approbation'}
             </div>
             <div className="muted" style={{ fontSize: '.8rem', marginTop: '.25rem' }}>
               {user.verificationStatus === 'rejected'
                 ? 'Votre compte n’a pas été approuvé. Contactez l’administrateur.'
-                : 'Un administrateur doit approuver votre compte avant que vous puissiez publier ou gérer vos annonces. Après validation, reconnectez-vous.'}
+                : 'Confirmez votre adresse email puis attendez qu’un administrateur approuve votre compte.'}
+            </div>
             </div>
           </div>
         )}
@@ -95,7 +112,7 @@ export default function Account() {
         </div>
 
         <div className="card">
-          {links.map(([to, icon, title, desc]) => (
+          {base.map(([to, icon, title, desc]) => (
             <button
               key={to}
               className="list-row"

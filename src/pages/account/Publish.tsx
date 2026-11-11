@@ -43,7 +43,7 @@ export default function Publish() {
     desc: editingListing?.desc ?? '',
     breed: editingListing?.breed ?? '',
     age: editingListing?.age != null ? String(editingListing.age) : '',
-    weight: editingListing?.weight != null ? String(editingListing.weight) : '',
+    weight: editingListing?.weight != null ? String(editingListing.weight / 1000) : '',
     sex: editingListing?.sex ?? '',
     vaccinated: editingListing?.vaccinated ?? false,
   };
@@ -78,8 +78,13 @@ export default function Publish() {
     }
     const normalPrice = Number(form.normalPrice);
     const price = form.salePrice ? Number(form.salePrice) : normalPrice;
+    const weightKg = form.weight ? Number(form.weight.replace(',', '.')) : undefined;
     if (normalPrice <= 0 || price <= 0 || price > normalPrice) {
       showToast('Le prix de vente doit être positif et inférieur ou égal au prix normal.', 'error');
+      return;
+    }
+    if (weightKg !== undefined && (!Number.isFinite(weightKg) || weightKg <= 0)) {
+      showToast('Indiquez un poids en kg valide.', 'error');
       return;
     }
     const city = form.city || user?.city || 'Cotonou';
@@ -95,7 +100,7 @@ export default function Publish() {
       qty: Number(form.qty) || 1,
       breed: form.breed || undefined,
       age: form.age ? Number(form.age) : undefined,
-      weight: form.weight ? Number(form.weight) : undefined,
+      weight: weightKg !== undefined ? Math.round(weightKg * 1000) : undefined,
       vaccinated: form.vaccinated,
       sex: form.sex || undefined,
       photos,
@@ -211,8 +216,19 @@ export default function Publish() {
               <input id="p-age" className="input" inputMode="numeric" value={form.age} onChange={(e) => setForm((f) => ({ ...f, age: e.target.value.replace(/\D/g, '') }))} placeholder="35" />
             </div>
             <div className="field">
-              <label className="label" htmlFor="p-weight">Poids (g)</label>
-              <input id="p-weight" className="input" inputMode="numeric" value={form.weight} onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value.replace(/\D/g, '') }))} placeholder="450" />
+              <label className="label" htmlFor="p-weight">Poids (kg)</label>
+              <input
+                id="p-weight"
+                className="input"
+                type="text"
+                inputMode="decimal"
+                value={form.weight}
+                onChange={(e) => setForm((f) => ({
+                  ...f,
+                  weight: e.target.value.replace(/[^\d.,]/g, '').replace(',', '.'),
+                }))}
+                placeholder="0,450"
+              />
             </div>
           </div>
           <div className="field">

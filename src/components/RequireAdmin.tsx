@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import AdminLogin from './AdminLogin';
-import { useAdminSession } from '../lib/adminAuth';
+import { ADMIN_EMAIL, useAdminSession } from '../lib/adminAuth';
+import { supabase } from '../lib/supabase';
 
 type Props = {
   /** Fourni via `<RequireAdmin><AdminHub /></RequireAdmin>`, sinon `<Outlet />` est utilisé. */
@@ -20,13 +22,48 @@ type Props = {
  * les requêtes sont refusées côté serveur par le compte non-admin.
  */
 export default function RequireAdmin({ children }: Props) {
-  const { unlocked, loading, unlock } = useAdminSession();
+  const { unlocked, loading, session, unlock } = useAdminSession();
+  const [authorization, setAuthorization] = useState<{ userId: string; allowed: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!unlocked || !session || !supabase || session.user.email !== ADMIN_EMAIL) return;
+
+    let active = true;
+    const userId = session.user.id;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).maybeSingle();
+        if (!active) return;
+        if (error) {
+          console.error('Admin access verification failed:', error.message);
+          setAuthorization({ userId, allowed: false });
+          return;
+        }
+        setAuthorization({ userId, allowed: data?.role === 'admin' });
+      } catch (error) {
+        if (!active) return;
+        console.error('Admin access verification failed:', error);
+        setAuthorization({ userId, allowed: false });
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [unlocked, session]);
 
   if (loading) {
     return <div className="section muted">Vérification de la session…</div>;
   }
 
-  if (!unlocked) {
+  const hasAdminSession = unlocked && session?.user.email === ADMIN_EMAIL && supabase !== null;
+  const authorizationMatches = Boolean(session && authorization?.userId === session.user.id);
+
+  if (hasAdminSession && !authorizationMatches) {
+    return <div className="section muted">Vérification des droits administrateur…</div>;
+  }
+
+  if (!hasAdminSession || !authorization?.allowed) {
     return <AdminLogin onSuccess={unlock} />;
   }
 

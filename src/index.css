@@ -38,12 +38,348 @@ body {
   height: 100%;
 }
 
+:root {
+  --admin-ink: #16352b;
+  --admin-gold: #e8b66b;
+  --admin-mist: #edf2eb;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background: #ece5db;
   color: var(--sl);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+}
+
+.admin-section {
+  padding-top: 1.1rem;
+}
+
+.admin-hero {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  padding: 1.35rem 1.2rem;
+  border: 1px solid rgba(232, 182, 107, .3);
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(232, 182, 107, .24), transparent 34%),
+    linear-gradient(135deg, #17392e, #285b45 72%, #397456);
+  box-shadow: 0 16px 34px rgba(22, 53, 43, .18);
+}
+
+.admin-hero-mark {
+  float: right;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 14px;
+  color: var(--admin-gold);
+  background: rgba(255,255,255,.09);
+  font-size: 1.15rem;
+}
+
+.admin-eyebrow {
+  display: block;
+  color: var(--admin-gold);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.admin-hero h1 {
+  margin-top: .55rem;
+  color: #fff;
+  font-family: var(--fd);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.admin-hero p {
+  max-width: 290px;
+  margin-top: .35rem;
+  color: rgba(255,255,255,.78);
+  font-size: .77rem;
+  line-height: 1.55;
+}
+
+.admin-feature-grid {
+  display: grid;
+  gap: .65rem;
+}
+
+.admin-feature-card {
+  display: flex;
+  width: 100%;
+  min-height: 82px;
+  align-items: center;
+  gap: .75rem;
+  padding: .8rem;
+  border: 1px solid rgba(27,67,50,.08);
+  text-align: left;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.admin-feature-card:active {
+  transform: scale(.985);
+}
+
+.admin-feature-icon {
+  display: grid;
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--admin-mist);
+  font-size: 1.25rem;
+}
+
+.admin-feature-copy {
+  display: grid;
+  flex: 1;
+  gap: .2rem;
+}
+
+.admin-feature-copy strong {
+  color: var(--admin-ink);
+  font-family: var(--fd);
+  font-size: .8rem;
+}
+
+.admin-feature-copy small {
+  color: var(--sll);
+  font-size: .67rem;
+  line-height: 1.4;
+}
+
+.admin-feature-count {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 .45rem;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--sll);
+  background: #f3f1ec;
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.admin-feature-count.has-items {
+  color: #8c4a16;
+  background: #fff0dc;
+}
+
+.admin-feature-arrow {
+  color: var(--sll);
+  font-size: .9rem;
+}
+
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .65rem;
+  margin-top: .85rem;
+}
+
+.admin-summary-grid .stat-card {
+  border: 1px solid rgba(27,67,50,.08);
+  border-radius: 17px;
+  background: linear-gradient(145deg, #fff, #f8f6f0);
+}
+
+.admin-account-list {
+  display: grid;
+  gap: .7rem;
+}
+
+.admin-account-card {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  padding: .85rem;
+  border: 1px solid rgba(27,67,50,.1);
+  border-radius: 18px;
+  box-shadow: 0 5px 16px rgba(27,67,50,.055);
+}
+
+.admin-account-avatar {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  color: #fff;
+  background: linear-gradient(145deg, #1b4332, #397456);
+}
+
+.admin-contact {
+  overflow-wrap: anywhere;
+  margin-top: .18rem;
+  color: var(--gm);
+  font-size: .69rem;
+}
+
+.admin-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin-top: .4rem;
+}
+
+.admin-status {
+  padding: .2rem .45rem;
+  border-radius: 999px;
+  color: var(--sll);
+  background: #f1f0eb;
+  font-size: .6rem;
+  font-weight: 800;
+}
+
+.admin-status.pending {
+  color: #8a5a13;
+  background: #fff2d6;
+}
+
+.admin-status.verified,
+.admin-status.active {
+  color: #176140;
+  background: #e5f4eb;
+}
+
+.admin-status.rejected,
+.admin-status.suspended {
+  color: #9c342b;
+  background: #fce9e7;
+}
+
+.admin-account-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  flex: 0 0 auto;
+}
+
+.admin-account-actions .btn {
+  padding: .42rem .55rem;
+  font-size: .67rem;
+}
+
+.account-status-card {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .9rem;
+  border: 1px solid rgba(196,122,43,.24);
+  background: linear-gradient(145deg, #fffdf8, #fff7e9);
+}
+
+.account-status-card p {
+  margin-top: .22rem;
+  color: var(--sll);
+  font-size: .76rem;
+  line-height: 1.5;
+}
+
+.account-status-icon {
+  font-size: 1.3rem;
+}
+
+.admin-shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .7rem;
+  margin-top: .85rem;
+  padding: .9rem;
+  border: 1px solid rgba(232,182,107,.35);
+  border-radius: 17px;
+  background: linear-gradient(120deg, #17392e, #285b45);
+  color: #fff;
+}
+
+.admin-shortcut-copy {
+  display: grid;
+  gap: .22rem;
+}
+
+.admin-shortcut-copy strong {
+  font-family: var(--fd);
+  font-size: .82rem;
+}
+
+.admin-shortcut-copy small {
+  color: rgba(255,255,255,.74);
+  font-size: .66rem;
+}
+
+.admin-login-page {
+  min-height: 100dvh;
+  background: radial-gradient(ellipse at 50% 12%, #345e4b, #17392e 55%, #10271f);
+}
+
+.admin-login-page .topbar {
+  border-color: rgba(255,255,255,.12);
+  background: rgba(19,47,37,.9);
+  color: #fff;
+}
+
+.admin-login-page .brand,
+.admin-login-page .topbar-title {
+  color: #fff;
+}
+
+.admin-login-page .brand-mark {
+  background: rgba(255,255,255,.13);
+}
+
+.admin-login-page .section {
+  padding-top: 2rem;
+}
+
+.admin-login-page .empty .ico {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto .8rem;
+  place-items: center;
+  border: 1px solid rgba(232,182,107,.35);
+  border-radius: 23px;
+  background: rgba(255,255,255,.1);
+}
+
+.admin-login-page .empty div,
+.admin-login-page .empty p {
+  color: #fff !important;
+}
+
+.admin-login-page .empty p {
+  opacity: .73;
+}
+
+.admin-login-page .card {
+  border: 1px solid rgba(255,255,255,.5);
+  border-radius: 22px;
+  box-shadow: 0 20px 45px rgba(0,0,0,.2);
+}
+
+.admin-login-section > p {
+  color: rgba(255,255,255,.7) !important;
+}
+
+@media (max-width: 370px) {
+  .admin-account-card {
+    flex-wrap: wrap;
+  }
+
+  .admin-account-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 
 a {

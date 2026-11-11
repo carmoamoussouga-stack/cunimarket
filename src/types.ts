@@ -68,6 +68,7 @@ export type User = {
   specialties?: string[];
   capacity?: string;
   verificationStatus?: 'pending' | 'verified' | 'rejected';
+  accountStatus?: 'active' | 'suspended';
   lat?: number;
   lng?: number;
 };

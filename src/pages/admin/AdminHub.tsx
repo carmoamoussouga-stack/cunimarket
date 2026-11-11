@@ -117,7 +117,13 @@ export default function AdminHub() {
         }
       />
 
-      <div className="section">
+      <div className="section admin-section">
+        <div className="admin-hero admin-dashboard-hero">
+          <div className="admin-hero-mark">✦</div>
+          <div className="admin-eyebrow">CUNIMARKET · ESPACE PRIVÉ</div>
+          <h1>Bonjour, administrateur</h1>
+          <p>Un aperçu clair des inscriptions et annonces à traiter en priorité.</p>
+        </div>
         {error && (
           <div className="card" style={{ padding: '1rem', marginBottom: '.9rem' }}>
             <div style={{ color: 'var(--er)', fontSize: '.85rem' }}>❌ {error}</div>
@@ -129,34 +135,25 @@ export default function AdminHub() {
 
         {loading && <div className="muted">Chargement…</div>}
 
-        <div className="card">
+        <div className="admin-feature-grid">
           {FEATURES.map(([to, icon, title, count, desc]) => (
             <button
               key={to}
-              className="list-row"
-              style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--bd)', textAlign: 'left' }}
+              className="card admin-feature-card"
               onClick={() => navigate(`/admin/${to}`)}
             >
-              <span style={{ fontSize: '1.3rem', width: 30 }}>{icon}</span>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'block', fontFamily: 'var(--fd)', fontWeight: 700, fontSize: '.9rem', color: 'var(--gd)' }}>
-                  {title}
-                </span>
-                <span className="muted" style={{ fontSize: '.74rem' }}>{desc}</span>
+              <span className="admin-feature-icon">{icon}</span>
+              <span className="admin-feature-copy">
+                <strong>{title}</strong>
+                <small>{desc}</small>
               </span>
-              {count > 0 ? (
-                <span className="chip" style={{ background: 'rgba(196,122,43,.12)', color: 'var(--oc)' }}>
-                  {count}
-                </span>
-              ) : (
-                <span className="muted" style={{ fontSize: '.75rem' }}>0</span>
-              )}
-              <span className="muted">›</span>
+              <span className={`admin-feature-count${count > 0 ? ' has-items' : ''}`}>{count}</span>
+              <span className="admin-feature-arrow">↗</span>
             </button>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.6rem', marginTop: '.9rem' }}>
+        <div className="admin-summary-grid">
           <div className="stat-card">
             <div className="stat-value">{counts.totalAccounts}</div>
             <div className="stat-label">Comptes inscrits</div>

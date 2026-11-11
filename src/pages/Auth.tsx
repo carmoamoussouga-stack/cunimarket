@@ -104,9 +104,19 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
           email,
           password: form.password,
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes('email not confirmed')) {
+            throw new Error('Confirmez votre adresse email depuis le message reçu pour pouvoir vous connecter.');
+          }
+          throw error;
+        }
         if (!data.user) throw new Error('Aucun utilisateur n’a été retourné.');
         const user = await appUserFromSupabase(data.user);
+        if (user.accountStatus === 'suspended') {
+          await supabase.auth.signOut();
+          showToast('Ce compte a été désactivé. Contactez l’administration.', 'error');
+          return;
+        }
         signIn(user);
         showToast('Bienvenue sur CuniMarket !');
         navigate(next ?? (user.role === 'seller' ? '/compte' : '/alentours'), { replace: true });
@@ -124,16 +134,23 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
         });
         if (error) throw error;
         if (!data.session || !data.user) {
-          showToast('Compte créé. Consultez votre email pour confirmer l’inscription.');
+          showToast('Inscription reçue. Confirmez votre adresse email, puis attendez l’approbation de votre compte par l’administrateur.');
           setTab('login');
           return;
         }
-        signIn(await appUserFromSupabase(data.user));
+        const newUser = await appUserFromSupabase(data.user);
+        if (newUser.accountStatus === 'suspended') {
+          await supabase.auth.signOut();
+          throw new Error('Ce compte a été désactivé. Contactez l’administration.');
+        }
+        signIn(newUser);
       } else {
         signIn(profile);
       }
 
-      showToast(tab === 'login' ? 'Bienvenue sur CuniMarket !' : 'Compte créé avec succès !');
+      showToast(tab === 'login'
+        ? 'Bienvenue sur CuniMarket !'
+        : 'Compte créé. Confirmez votre email puis attendez l’approbation de l’administrateur.');
       navigate(next ?? (role === 'seller' ? '/compte' : '/alentours'), { replace: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Une erreur est survenue.';
@@ -161,18 +178,6 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
             <p className="muted" style={{ fontSize: '.87rem', margin: '.3rem 0 1.25rem' }}>
               Producteurs et acheteurs — un seul espace pour écouler et trouver des lapins près de chez vous.
             </p>
-            <button
-              className="option-row"
-              style={{ width: '100%', marginBottom: '1rem', borderColor: 'var(--gd)' }}
-              onClick={() => navigate('/admin')}
-            >
-              <span style={{ fontSize: '1.5rem' }}>🛡️</span>
-              <span>
-                <span className="option-title" style={{ display: 'block' }}>Administrateur</span>
-                <span className="option-desc" style={{ display: 'block' }}>Connexion à l’espace de modération</span>
-              </span>
-              <span className="muted" style={{ marginLeft: 'auto' }}>›</span>
-            </button>
             {!supabase && (
               <p className="muted" style={{ fontSize: '.78rem', marginBottom: '1rem' }}>
                 {authUnavailable

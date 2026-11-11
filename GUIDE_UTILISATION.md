@@ -16,13 +16,13 @@ Compte dédié à la vente de lapins, équipements ou aliments pour lapins.
    - Renseigner: Email, mot de passe, nom, téléphone, département, ville
    - Nom de la ferme, ville et département requis ; années, capacité et spécialités facultatives
    - La localisation est facultative : choisir une ville ou activer le GPS
-   - Le compte doit être approuvé par un administrateur avant l'accès aux fonctions producteur
+   - Confirmer l'adresse email, puis attendre l'approbation du compte par un administrateur
    - → Redirection vers `/compte` (statut d'approbation affiché)
 
 2. **Publier une annonce** → `/compte/publier`
-   - Ajouter photos (jusqu'à 4, compression auto 900px @ 72% JPG)
+   - Ajouter des photos (jusqu'à 4, compression auto 900px @ 72% JPG)
    - Titre, catégorie, prix normal et prix de vente facultatif, quantité, unité (tête, kg, lot…)
-   - **Caractéristiques** : Race, âge (jours), poids (g), sexe, vaccin
+   - **Caractéristiques** : Race, âge (jours), poids en kg, sexe, vaccin
    - Description, localisation (dept/ville auto-remplies)
    - → En mode Supabase, l'annonce est publiée avec statut « à vérifier »
 
@@ -106,7 +106,15 @@ Compte pour trouver et acheter des lapins proches de sa localisation.
 - `/panier` — Panier d'achat
 - `/connexion` — Login
 - `/inscription` — Register
-- L'accès administrateur se fait depuis l'écran de connexion, pas depuis l'inscription
+- L'accès administrateur est réservé au compte admin et se fait directement par `/admin` (aucun bouton admin public)
+
+### Notification email admin
+- L'adresse de confirmation Supabase reste envoyée à l'utilisateur pour vérifier sa propre adresse.
+- Une notification séparée de nouvelle inscription peut être envoyée à `carmenamoussouga@gmail.com` via la fonction Supabase `notify-admin-new-account`.
+- Déployer la fonction avec Supabase CLI : `supabase functions deploy notify-admin-new-account`.
+- Configurer les secrets de fonction `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_NOTIFICATION_EMAIL` et `SUPABASE_DB_WEBHOOK_SECRET`. Utiliser une adresse expéditeur vérifiée chez Resend et un secret webhook aléatoire.
+- Dans Supabase → Database → Webhooks, créer un webhook `INSERT` sur `public.profiles` vers `https://<project-ref>.supabase.co/functions/v1/notify-admin-new-account`, avec l’en-tête `x-webhook-secret` égal au secret configuré. Le webhook ne transmet que les nouvelles inscriptions producteur/acheteur en attente.
+- Après confirmation de son email, l’utilisateur doit attendre l’approbation admin avant de commander ou d’utiliser les fonctions producteur.
 - `/confirmation/:ref` — Récapitulatif de commande, paiement dû à la livraison
 
 ### Pages Protégées (authentification)

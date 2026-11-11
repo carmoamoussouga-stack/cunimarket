@@ -112,7 +112,7 @@ export default function ListingDetail() {
           {[
             ['Race', listing.breed ?? '—'],
             ['Âge', listing.age ? `${listing.age} jours` : '—'],
-            ['Poids', listing.weight ? `${listing.weight} g` : '—'],
+            ['Poids', listing.weight ? `${(listing.weight / 1000).toLocaleString('fr-FR')} kg` : '—'],
             ['Sexe', listing.sex ?? '—'],
             ['Vaccinés', listing.vaccinated ? 'Oui ✓' : '—'],
             ['Disponible', `${listing.qty} unités`],

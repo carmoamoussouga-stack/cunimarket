@@ -12,7 +12,7 @@ export async function appUserFromSupabase(user: SupabaseUser): Promise<User> {
   const metadata = user.user_metadata;
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('role, verification_status')
+    .select('role, verification_status, account_status')
     .eq('id', user.id)
     .maybeSingle();
   if (error) throw new Error(`Chargement du profil impossible : ${error.message}`);
@@ -34,6 +34,7 @@ export async function appUserFromSupabase(user: SupabaseUser): Promise<User> {
     verificationStatus: profile?.verification_status === 'verified' || profile?.verification_status === 'rejected'
       ? profile.verification_status
       : 'pending',
+    accountStatus: profile?.account_status === 'suspended' ? 'suspended' : 'active',
     farmName: typeof metadata.farmName === 'string' ? metadata.farmName : undefined,
     years: typeof metadata.years === 'number' ? metadata.years : undefined,
     capacity: typeof metadata.capacity === 'string' ? metadata.capacity : undefined,

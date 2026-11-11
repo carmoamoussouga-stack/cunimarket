@@ -34,14 +34,25 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function RequireApprovedProducer({ children }: { children: React.ReactNode }) {
+function RequireApprovedAccount({ children }: { children: React.ReactNode }) {
   const { user } = useApp();
-  if (supabase && user?.role === 'seller' && user.verificationStatus !== 'verified') {
+  if (supabase && user && user.role !== 'admin'
+    && (user.accountStatus !== 'active' || user.verificationStatus !== 'verified')) {
     return (
       <div className="page">
         <div className="section">
-          <div className="card" style={{ padding: '1rem' }}>
-            Votre compte producteur doit être approuvé par un administrateur avant d’accéder à cet espace.
+          <div className="card" style={{ padding: '1.2rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '.5rem' }}>
+              {user.accountStatus === 'suspended' ? '🔒' : '⏳'}
+            </div>
+            <strong style={{ display: 'block', color: 'var(--gd)', marginBottom: '.35rem' }}>
+              {user.accountStatus === 'suspended' ? 'Compte désactivé' : 'Validation en cours'}
+            </strong>
+            <span className="muted">
+              {user.accountStatus === 'suspended'
+                ? 'L’administrateur a désactivé ce compte. Contactez l’assistance pour en savoir plus.'
+                : 'Confirmez votre adresse email et attendez l’approbation de l’administrateur avant d’utiliser cet espace.'}
+            </span>
             <Link className="btn block" style={{ marginTop: '.8rem' }} to="/compte">Retour à mon compte</Link>
           </div>
         </div>
@@ -83,7 +94,7 @@ export default function App() {
           <Route path="/admin/statistiques" element={<RequireAdmin><AdminStats /></RequireAdmin>} />
           <Route
             path="/checkout"
-            element={<RequireAuth><RequireApprovedProducer><Checkout /></RequireApprovedProducer></RequireAuth>}
+            element={<RequireAuth><RequireApprovedAccount><Checkout /></RequireApprovedAccount></RequireAuth>}
           />
           <Route path="/confirmation/:ref" element={<Confirm />} />
           <Route path="/compte" element={<RequireAuth><Account /></RequireAuth>} />
@@ -91,7 +102,7 @@ export default function App() {
             path="/compte/stats"
             element={
               <RequireAuth>
-                <RequireApprovedProducer><Stats /></RequireApprovedProducer>
+                <RequireApprovedAccount><Stats /></RequireApprovedAccount>
               </RequireAuth>
             }
           />
@@ -99,7 +110,7 @@ export default function App() {
             path="/compte/annonces"
             element={
               <RequireAuth>
-                <RequireApprovedProducer><MyListings /></RequireApprovedProducer>
+                <RequireApprovedAccount><MyListings /></RequireApprovedAccount>
               </RequireAuth>
             }
           />
@@ -107,7 +118,7 @@ export default function App() {
             path="/compte/publier"
             element={
               <RequireAuth>
-                <RequireApprovedProducer><Publish /></RequireApprovedProducer>
+                <RequireApprovedAccount><Publish /></RequireApprovedAccount>
               </RequireAuth>
             }
           />
@@ -115,7 +126,7 @@ export default function App() {
             path="/compte/commandes"
             element={
               <RequireAuth>
-                <RequireApprovedProducer><Orders /></RequireApprovedProducer>
+                <RequireApprovedAccount><Orders /></RequireApprovedAccount>
               </RequireAuth>
             }
           />
@@ -123,7 +134,7 @@ export default function App() {
             path="/compte/messages"
             element={
               <RequireAuth>
-                <RequireApprovedProducer><Messages /></RequireApprovedProducer>
+                <RequireApprovedAccount><Messages /></RequireApprovedAccount>
               </RequireAuth>
             }
           />
@@ -131,7 +142,7 @@ export default function App() {
             path="/compte/finances"
             element={
               <RequireAuth>
-                <RequireApprovedProducer><Finances /></RequireApprovedProducer>
+                <RequireApprovedAccount><Finances /></RequireApprovedAccount>
               </RequireAuth>
             }
           />

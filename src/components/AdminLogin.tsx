@@ -36,7 +36,7 @@ export default function AdminLogin({ onSuccess }: Props) {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-login-page">
       <header className="topbar">
         <div className="brand" style={{ flex: 1 }}>
           <span className="brand-mark">🐇</span>
@@ -45,7 +45,7 @@ export default function AdminLogin({ onSuccess }: Props) {
         </div>
       </header>
 
-      <div className="section">
+      <div className="section admin-login-section">
         <div className="empty" style={{ paddingBottom: '1.5rem' }}>
           <div className="ico">🛡️</div>
           <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)', fontSize: '1.05rem' }}>

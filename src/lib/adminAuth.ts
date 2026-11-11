@@ -61,6 +61,23 @@ export async function signInAdmin(password: string): Promise<string | null> {
     return 'Connexion refusée : vérifiez que le compte admin est confirmé dans Supabase.';
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .maybeSingle();
+  if (profileError) {
+    console.error('Admin role verification failed:', profileError.message);
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) console.error('Admin sign-out after verification failure:', signOutError.message);
+    return 'Impossible de vérifier les droits administrateur.';
+  }
+  if (profile?.role !== 'admin') {
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) console.error('Admin sign-out after authorization denial:', signOutError.message);
+    return 'Ce compte ne possède pas les droits administrateur.';
+  }
+
   try {
     sessionStorage.setItem(SESSION_KEY, '1');
   } catch {
