@@ -33,6 +33,7 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
   const [showPwd, setShowPwd] = useState(false);
   const [locHint, setLocHint] = useState('');
   const [coords, setCoords] = useState<GeoPoint | null>(null);
+  const authUnavailable = import.meta.env.PROD && !supabase;
 
   const requestedNext = params.get('next');
   const next = requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : null;
@@ -57,6 +58,11 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
   };
 
   const submit = async () => {
+    if (authUnavailable) {
+      showToast('Connexion indisponible : le service Supabase n’est pas configuré.', 'error');
+      return;
+    }
+
     const email = form.email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !form.password) {
       showToast('Indiquez une adresse email valide et votre mot de passe', 'error');
@@ -155,7 +161,13 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
             <p className="muted" style={{ fontSize: '.87rem', margin: '.3rem 0 1.25rem' }}>
               Producteurs et acheteurs — un seul espace pour écouler et trouver des lapins près de chez vous.
             </p>
-            {!supabase && <p className="muted" style={{ fontSize: '.78rem', marginBottom: '1rem' }}>Mode démonstration : la connexion n’est pas vérifiée par un serveur.</p>}
+            {!supabase && (
+              <p className="muted" style={{ fontSize: '.78rem', marginBottom: '1rem' }}>
+                {authUnavailable
+                  ? 'Connexion indisponible : Supabase doit être configuré sur le déploiement.'
+                  : 'Mode démonstration : la connexion n’est pas vérifiée par un serveur.'}
+              </p>
+            )}
           </>
         ) : (
           <>
@@ -163,7 +175,13 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
             <p className="muted" style={{ fontSize: '.87rem', margin: '.3rem 0 1.25rem' }}>
               Réservé aux éleveurs de lapins qui peinent à vendre, et aux acheteurs de leur zone.
             </p>
-            {!supabase && <p className="muted" style={{ fontSize: '.78rem', marginBottom: '1rem' }}>Mode démonstration : les comptes sont enregistrés uniquement sur cet appareil.</p>}
+            {!supabase && (
+              <p className="muted" style={{ fontSize: '.78rem', marginBottom: '1rem' }}>
+                {authUnavailable
+                  ? 'Inscription indisponible : Supabase doit être configuré sur le déploiement.'
+                  : 'Mode démonstration : les comptes sont enregistrés uniquement sur cet appareil.'}
+              </p>
+            )}
             <div className="field">
               <span className="label">Je suis…</span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.6rem' }}>
@@ -306,13 +324,15 @@ export default function Auth({ mode }: { mode: 'login' | 'register' }) {
           )}
         </div>
 
-        <button className="btn block lg" style={{ marginTop: '.5rem' }} onClick={() => void submit()} disabled={loading}>
-          {loading ? 'Localisation et création…' : tab === 'login' ? 'Se connecter' : 'Créer mon compte'}
+        <button className="btn block lg" style={{ marginTop: '.5rem' }} onClick={() => void submit()} disabled={loading || authUnavailable}>
+          {loading ? 'Connexion…' : authUnavailable ? 'Service indisponible' : tab === 'login' ? 'Se connecter' : 'Créer mon compte'}
         </button>
 
-        <p className="muted" style={{ fontSize: '.75rem', textAlign: 'center', marginTop: '.9rem' }}>
-          🔒 Vos données restent sur votre appareil dans cette version.
-        </p>
+        {!supabase && !authUnavailable && (
+          <p className="muted" style={{ fontSize: '.75rem', textAlign: 'center', marginTop: '.9rem' }}>
+            🔒 Vos données restent sur votre appareil dans cette version.
+          </p>
+        )}
       </div>
     </div>
   );

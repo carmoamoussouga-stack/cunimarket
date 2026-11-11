@@ -39,6 +39,7 @@ npm run lint
 3. Copier `.env.example` en `.env.local`, puis renseigner l’URL du projet et sa clé publique anon/publishable.
 4. Exécuter `supabase/migrations/20261020000000_pilot.sql` dans le SQL Editor Supabase.
 5. Redémarrer Vite après toute modification de `.env.local`.
+6. Sur Vercel, ajouter `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` aux variables d’environnement des environnements **Production** et **Preview**, puis redéployer. Ces variables sont intégrées lors du build.
 
 Ne jamais utiliser la clé secrète `service_role` dans l’application web.
 
