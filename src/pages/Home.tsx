@@ -10,6 +10,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { listings, user } = useApp();
   const [search, setSearch] = useState('');
+  const producerCount = new Set(listings.map((listing) => listing.sellerId)).size;
 
   const goSearch = (q: string) => {
     if (q === 'Près de moi') navigate('/alentours');
@@ -17,94 +18,84 @@ export default function Home() {
   };
 
   return (
-    <div className="page">
+    <div className="page home-page">
       <TopBar />
       <LocationPrompt />
 
-      <section
-        style={{
-          background: 'var(--gd)',
-          padding: '1.5rem 1rem 1.75rem',
-          color: '#fff',
-          borderRadius: '0 0 var(--r3) var(--r3)',
-        }}
-      >
-        <span
-          style={{
-            display: 'inline-block',
-            background: 'rgba(255,255,255,.12)',
-            border: '1px solid rgba(255,255,255,.18)',
-            borderRadius: 100,
-            padding: '.3rem .75rem',
-            fontSize: '.68rem',
-            fontWeight: 700,
-            color: 'var(--ol)',
-            letterSpacing: '.05em',
-            textTransform: 'uppercase',
-          }}
-        >
-          🐇 Uniquement les éleveurs de lapins
-        </span>
-        <h1
-          style={{
-            fontFamily: 'var(--fd)',
-            fontSize: '1.75rem',
-            fontWeight: 800,
-            lineHeight: 1.15,
-            margin: '.75rem 0 .5rem',
-          }}
-        >
-          Vendez vos lapins <span style={{ color: 'var(--ol)' }}>près de chez vous</span>
-        </h1>
-        <p style={{ fontSize: '.9rem', color: 'rgba(249,245,239,.78)', lineHeight: 1.6 }}>
-          Pour les producteurs qui n’arrivent pas à écouler leur cheptel. Les acheteurs activent
-          leur localisation et trouvent les fermes de leur zone, avec photos et caractéristiques.
-        </p>
+      <section className="hero-shell">
+        <div className="hero-copy">
+          <span className="eyebrow">🐇 CuniMarket</span>
+          <h1>
+            Des lapins, des fermes <span>et des achats près de chez vous.</span>
+          </h1>
+          <p>
+            Trouvez les meilleurs lots de lapins, produits de la ferme et producteurs fiables autour
+            de votre zone, sans perdre de temps ni de qualité.
+          </p>
 
-        <div style={{ display: 'flex', gap: '.5rem', marginTop: '1rem' }}>
+          <div className="hero-actions">
+            <button className="btn ocre" onClick={() => navigate('/catalogue')}>
+              Voir les lots
+            </button>
+            <button className="btn ghost" onClick={() => navigate('/inscription?role=seller')}>
+              Vendre
+            </button>
+          </div>
+
+          <div className="hero-recap">
+            <div>
+              <strong>{listings.length}</strong>
+              <span>lots publiés</span>
+            </div>
+            <div>
+              <strong>{producerCount}</strong>
+              <span>producteurs</span>
+            </div>
+            <div>
+              <strong>GPS</strong>
+              <span>ou recherche par ville</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="hero-art">
+          <img src="/rabbit-design.png" alt="Lapin avec carotte" />
+        </div>
+      </section>
+
+      <section className="section section-search">
+        <div className="search-bar">
           <input
             className="input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && goSearch(search)}
             placeholder="Rechercher un lot, une race…"
-            style={{ border: 'none' }}
           />
           <button className="btn ocre" onClick={() => goSearch(search)} aria-label="Rechercher">
             🔍
           </button>
         </div>
 
-        <div className="pill-row" style={{ marginTop: '.7rem' }}>
+        <div className="pill-row">
           {TRENDING.map((t) => (
             <button key={t} className="pill" onClick={() => goSearch(t)}>
               {t}
             </button>
           ))}
         </div>
-
-        <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1.25rem' }}>
-          {[
-            ['Producteurs', 'Fournisseurs'],
-            ['Acheteurs', 'Près de vous'],
-            ['Photos', 'Lots réels'],
-          ].map(([n, l]) => (
-            <div key={l}>
-              <div style={{ fontFamily: 'var(--fd)', fontSize: '1.05rem', fontWeight: 800 }}>{n}</div>
-              <div style={{ fontSize: '.7rem', color: 'rgba(249,245,239,.65)' }}>{l}</div>
-            </div>
-          ))}
-        </div>
       </section>
 
-      <section className="section">
-        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '.8rem', alignItems: 'center' }}>
-          <div style={{ fontSize: '1.6rem' }}>📍</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)' }}>Producteurs dans votre zone</div>
-            <p className="muted" style={{ fontSize: '.8rem' }}>Localisez les élevages proches et leurs spécialités.</p>
+      <section className="section section-inline">
+        <div className="feature-banner card">
+          <div className="feature-banner-icon">📍</div>
+          <div className="feature-banner-copy">
+            <strong>Producteurs dans votre zone</strong>
+            <span>Localisez les élevages proches et leurs spécialités.</span>
           </div>
-          <button className="btn ocre" onClick={() => navigate('/alentours')}>Voir</button>
+          <button className="btn ocre" onClick={() => navigate('/alentours')}>
+            Voir
+          </button>
         </div>
       </section>
 
@@ -145,14 +136,15 @@ export default function Home() {
       </section>
 
       <section className="section" style={{ paddingTop: 0 }}>
-        <div className="card" style={{ padding: '1.1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.8rem' }}>🐇</div>
-          <div style={{ fontFamily: 'var(--fd)', fontWeight: 800, color: 'var(--gd)', margin: '.35rem 0' }}>
-            Vous produisez des lapins ?
+        <div className="callout card">
+          <div className="callout-emoji">🐇</div>
+          <div className="callout-copy">
+            <strong>Vous produisez des lapins ?</strong>
+            <p>
+              Créez un compte producteur, activez votre localisation et publiez des lots avec photos
+              et détails précis.
+            </p>
           </div>
-          <p className="muted" style={{ fontSize: '.85rem', marginBottom: '.9rem' }}>
-            Créez un compte producteur, activez votre localisation et publiez photos + caractéristiques de vos lots.
-          </p>
           <button
             className="btn ocre block"
             onClick={() => navigate(user?.role === 'seller' ? '/compte/publier' : '/inscription?role=seller')}

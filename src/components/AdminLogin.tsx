@@ -13,6 +13,7 @@ type Props = {
  */
 export default function AdminLogin({ onSuccess }: Props) {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -59,19 +60,30 @@ export default function AdminLogin({ onSuccess }: Props) {
         <form className="card" style={{ padding: '1.1rem' }} onSubmit={(e) => void submit(e)}>
           <div className="field">
             <label className="label" htmlFor="admin-pwd">Mot de passe administrateur</label>
-            <input
-              id="admin-pwd"
-              className="input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Votre mot de passe"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              autoComplete="current-password"
-              autoFocus
-            />
+            <div className="input-wrap">
+              <input
+                id="admin-pwd"
+                className="input"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Votre mot de passe"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                autoComplete="current-password"
+                autoFocus
+              />
+              <button
+                type="button"
+                className="pwd-toggle"
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           {error && (
